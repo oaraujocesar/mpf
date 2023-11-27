@@ -20,6 +20,7 @@ type User struct {
 	Email    string    `json:"email"`
 	Password string    `json:"-"`
 	Role     Role      `json:"role"`
+	Entries  []Entry   `json:"entries"`
 }
 
 func NewUser(name, avatar, email, password string, role Role) (*User, error) {
