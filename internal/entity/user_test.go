@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/oaraujocesar/mpf/pkg/custom_errors"
@@ -49,11 +50,33 @@ func TestNewUserWithInvalidNameLength(t *testing.T) {
 	assert.Equal(t, custom_errors.ErrNameMinLength, err)
 }
 
+func TestNewUserWithInvalidNameMaxLength(t *testing.T) {
+	user, err := NewUser(strings.Repeat("a", 101), "https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50", "cesar@user", "reallystrongpassword", Common)
+
+	assert.Nil(t, user)
+	assert.NotNil(t, err)
+	assert.Equal(t, custom_errors.ErrNameMaxLength, err)
+}
+
+func TestNewUserWithEmptyEmail(t *testing.T) {
+	user, err := NewUser("Cesar", "https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50", "", "reallystrongpassword", Common)
+	assert.Nil(t, user)
+	assert.NotNil(t, err)
+	assert.Equal(t, custom_errors.ErrEmailRequired, err)
+}
+
 func TestNewUserWithEmptyPassword(t *testing.T) {
 	user, err := NewUser("Cesar", "https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50", "cesar@user", "", Common)
 	assert.Nil(t, user)
 	assert.NotNil(t, err)
 	assert.Equal(t, custom_errors.ErrPasswordRequired, err)
+}
+
+func TestNewUserWithWrongPassword(t *testing.T) {
+	user, err := NewUser("Cesar", "https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50", "cesar@user", "weak", Common)
+	assert.Nil(t, user)
+	assert.NotNil(t, err)
+	assert.Equal(t, custom_errors.ErrPasswordMinLength, err)
 }
 
 func TestUserValidatePassword(t *testing.T) {

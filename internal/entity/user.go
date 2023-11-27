@@ -39,6 +39,8 @@ func NewUser(name, avatar, email, password string, role Role) (*User, error) {
 
 	if password == "" {
 		return nil, custom_errors.ErrPasswordRequired
+	} else if len(password) < 10 {
+		return nil, custom_errors.ErrPasswordMinLength
 	}
 
 	if role != Admin && role != Common {
