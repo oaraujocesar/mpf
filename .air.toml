@@ -35,7 +35,7 @@ follow_symlink = true
 # This log file places in your tmp_dir.
 log = "air.log"
 # Poll files for changes instead of using fsnotify.
-poll = false
+poll = true
 # Poll interval (defaults to the minimum interval of 500ms).
 poll_interval = 500 # ms
 # It's not necessary to trigger build each time file changes if it's too frequent.

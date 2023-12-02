@@ -1,17 +1,36 @@
 package main
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/oaraujocesar/mpf/app"
+	"github.com/oaraujocesar/mpf/configs"
+	"github.com/oaraujocesar/mpf/database"
+	sqlc "github.com/oaraujocesar/mpf/database/sqlc"
 )
 
 func main() {
-	r := chi.NewRouter()
-	r.Use(middleware.Logger)
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello World!"))
-	})
-	http.ListenAndServe(":3333", r)
+
+	config, err := configs.LoadConfig(".")
+	if err != nil {
+		log.Fatal("cannot load config:", err)
+	}
+
+	log.Printf("config file successfully loaded as: %v", config)
+
+	conn, ctx := database.ConnectDB()
+
+	defer conn.Close(ctx)
+
+	sqlc.New(conn)
+
+	server := &http.Server{
+		Addr:    ":" + config.WebServerPort,
+		Handler: app.Router(),
+	}
+
+	fmt.Println("Server running on port", config.WebServerPort)
+	log.Fatal(server.ListenAndServe())
 }

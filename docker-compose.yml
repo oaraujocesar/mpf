@@ -13,7 +13,7 @@ services:
     expose:
       - ${DB_PORT}
     volumes:
-      - ./database:/docker-entrypoint-initdb.d/
+      - database:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -22,10 +22,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["air", "./cmd/main.go"]
     depends_on:
       - database
+    volumes:
+      - .:/app
     ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
+      - "${WEB_SERVER_PORT}:${WEB_SERVER_PORT}"
 volumes:
   database:
