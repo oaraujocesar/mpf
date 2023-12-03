@@ -10,14 +10,15 @@ services:
     restart: always
     ports:
       - "${DB_PORT}:${DB_PORT}"
-    expose:
-      - ${DB_PORT}
     volumes:
-      - database:/var/lib/postgresql/data
+      - db:/var/lib/postgresql/data
     environment:
+      POSTGRES_HOST: ${DB_HOST}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
+    networks:
+      - app-network
   server:
     build:
       context: .
@@ -28,5 +29,11 @@ services:
       - .:/app
     ports:
       - "${WEB_SERVER_PORT}:${WEB_SERVER_PORT}"
+    networks:
+      - app-network
 volumes:
-  database:
+  db:
+
+networks:
+  app-network:
+    driver: bridge
