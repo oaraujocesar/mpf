@@ -1,9 +1,9 @@
 CREATE TABLE
     "cards" (
-        "user_id" bigserial NOT NULL,
         "id" bigserial PRIMARY KEY,
+        "user_id" bigserial NOT NULL,
         "name" varchar NOT NULL,
-        "limit" float NOT NULL,
+        "card_limit" float NOT NULL,
         "due_date" integer NOT NULL,
         "family_id" bigserial,
         "created_at" timestamptz NOT NULL DEFAULT (now()),

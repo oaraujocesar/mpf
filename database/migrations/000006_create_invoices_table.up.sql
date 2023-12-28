@@ -6,6 +6,7 @@ CREATE TABLE
         "close_at" timestamptz NOT NULL DEFAULT (now()),
         "card_id" bigserial NOT NULL,
         "due_at" timestamptz NOT NULL DEFAULT (now()),
+        "paid_at" timestamptz,
         "created_at" timestamptz NOT NULL DEFAULT (now()),
         "updated_at" timestamptz NOT NULL DEFAULT (now()),
         "deleted_at" timestamptz
