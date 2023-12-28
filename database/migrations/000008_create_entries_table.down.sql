@@ -1,8 +1,8 @@
-ALTER TABLE "entries" REMOVE FOREIGN KEY ("invoice_id");
+ALTER TABLE "entries" DROP CONSTRAINT "fk_invoice_id";
 
-ALTER TABLE "entries" REMOVE FOREIGN KEY ("category_id");
+ALTER TABLE "entries" DROP CONSTRAINT "fk_category_id";
 
-ALTER TABLE "entries" REMOVE FOREIGN KEY ("account_id");
+ALTER TABLE "entries" DROP CONSTRAINT "fk_account_id";
 
 DROP TABLE IF EXISTS "entries";
 

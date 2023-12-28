@@ -1,3 +1,3 @@
-ALTER TABLE "installments" REMOVE FOREIGN KEY ("entry_id");
+ALTER TABLE "installments" DROP CONSTRAINT "fk_entry_id";
 
 DROP TABLE IF EXISTS "installments";

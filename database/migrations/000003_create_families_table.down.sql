@@ -1,3 +1,3 @@
-ALTER TABLE "families" REMOVE FOREIGN KEY ("user_id");
+ALTER TABLE "families" DROP CONSTRAINT "fk_user_id";
 
 DROP TABLE IF EXISTS "families";

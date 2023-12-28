@@ -7,7 +7,6 @@ services:
       timeout: 45s
       interval: 10s
       retries: 10
-    restart: always
     ports:
       - "${DB_PORT}:${DB_PORT}"
     volumes:

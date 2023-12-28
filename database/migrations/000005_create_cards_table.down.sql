@@ -1,5 +1,5 @@
-ALTER TABLE "cards" REMOVE FOREIGN KEY ("family_id");
+ALTER TABLE "cards" DROP CONSTRAINT "fk_family_id";
 
-ALTER TABLE "cards" REMOVE FOREIGN KEY ("user_id");
+ALTER TABLE "cards" DROP CONSTRAINT "fk_user_id";
 
 DROP TABLE IF EXISTS "cards";
