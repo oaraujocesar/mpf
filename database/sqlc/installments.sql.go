@@ -7,8 +7,7 @@ package database
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
+	"database/sql"
 )
 
 const createInstallment = `-- name: CreateInstallment :one
@@ -18,14 +17,14 @@ RETURNING id, amount, entry_id, payday, paid_at, created_at, updated_at, deleted
 `
 
 type CreateInstallmentParams struct {
-	Amount  float64            `json:"amount"`
-	EntryID int64              `json:"entry_id"`
-	Payday  pgtype.Timestamptz `json:"payday"`
-	PaidAt  pgtype.Timestamptz `json:"paid_at"`
+	Amount  float64      `json:"amount"`
+	EntryID int64        `json:"entry_id"`
+	Payday  sql.NullTime `json:"payday"`
+	PaidAt  sql.NullTime `json:"paid_at"`
 }
 
 func (q *Queries) CreateInstallment(ctx context.Context, arg CreateInstallmentParams) (Installment, error) {
-	row := q.db.QueryRow(ctx, createInstallment,
+	row := q.db.QueryRowContext(ctx, createInstallment,
 		arg.Amount,
 		arg.EntryID,
 		arg.Payday,
@@ -52,7 +51,7 @@ WHERE id = $1
 `
 
 func (q *Queries) DeleteInstallment(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, deleteInstallment, id)
+	_, err := q.db.ExecContext(ctx, deleteInstallment, id)
 	return err
 }
 
@@ -64,7 +63,7 @@ LIMIT 1
 `
 
 func (q *Queries) GetInstallmentById(ctx context.Context, id int64) (Installment, error) {
-	row := q.db.QueryRow(ctx, getInstallmentById, id)
+	row := q.db.QueryRowContext(ctx, getInstallmentById, id)
 	var i Installment
 	err := row.Scan(
 		&i.ID,
@@ -95,7 +94,7 @@ type ListInstallmentsParams struct {
 }
 
 func (q *Queries) ListInstallments(ctx context.Context, arg ListInstallmentsParams) ([]Installment, error) {
-	rows, err := q.db.Query(ctx, listInstallments,
+	rows, err := q.db.QueryContext(ctx, listInstallments,
 		arg.EntryID,
 		arg.Column2,
 		arg.Limit,
@@ -122,6 +121,9 @@ func (q *Queries) ListInstallments(ctx context.Context, arg ListInstallmentsPara
 		}
 		items = append(items, i)
 	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -137,12 +139,12 @@ RETURNING id, amount, entry_id, payday, paid_at, created_at, updated_at, deleted
 `
 
 type UpdateInstallmentParams struct {
-	ID     int64              `json:"id"`
-	PaidAt pgtype.Timestamptz `json:"paid_at"`
+	ID     int64        `json:"id"`
+	PaidAt sql.NullTime `json:"paid_at"`
 }
 
 func (q *Queries) UpdateInstallment(ctx context.Context, arg UpdateInstallmentParams) (Installment, error) {
-	row := q.db.QueryRow(ctx, updateInstallment, arg.ID, arg.PaidAt)
+	row := q.db.QueryRowContext(ctx, updateInstallment, arg.ID, arg.PaidAt)
 	var i Installment
 	err := row.Scan(
 		&i.ID,

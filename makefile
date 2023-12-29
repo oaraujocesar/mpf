@@ -6,5 +6,7 @@ migrate-up:
 	docker compose exec server migrate --path=database/migrations --database "postgres://postgres:postgres@database:5432/mpf?sslmode=disable" --verbose up
 migrate-down:
 	docker compose exec server migrate --path=database/migrations --database "postgres://postgres:postgres@database:5432/mpf?sslmode=disable" --verbose down
+test:
+	go test -v -cover ./...
 
-.PHONY: migration-create migrate-up migrate-down
+.PHONY: migration-create migrate-up migrate-down test

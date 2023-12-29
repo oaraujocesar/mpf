@@ -7,8 +7,7 @@ package database
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
+	"database/sql"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -18,14 +17,14 @@ RETURNING id, name, email, password, avatar, created_at, updated_at, deleted_at
 `
 
 type CreateUserParams struct {
-	Name     string      `json:"name"`
-	Email    string      `json:"email"`
-	Password string      `json:"password"`
-	Avatar   pgtype.Text `json:"avatar"`
+	Name     string         `json:"name"`
+	Email    string         `json:"email"`
+	Password string         `json:"password"`
+	Avatar   sql.NullString `json:"avatar"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser,
+	row := q.db.QueryRowContext(ctx, createUser,
 		arg.Name,
 		arg.Email,
 		arg.Password,
@@ -52,7 +51,7 @@ WHERE id = $1
 `
 
 func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, deleteUser, id)
+	_, err := q.db.ExecContext(ctx, deleteUser, id)
 	return err
 }
 
@@ -64,7 +63,7 @@ LIMIT 1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
-	row := q.db.QueryRow(ctx, getUserByEmail, email)
+	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -87,7 +86,7 @@ LIMIT 1
 `
 
 func (q *Queries) GetUserById(ctx context.Context, id int64) (User, error) {
-	row := q.db.QueryRow(ctx, getUserById, id)
+	row := q.db.QueryRowContext(ctx, getUserById, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -100,6 +99,16 @@ func (q *Queries) GetUserById(ctx context.Context, id int64) (User, error) {
 		&i.DeletedAt,
 	)
 	return i, err
+}
+
+const hardDeleteUser = `-- name: HardDeleteUser :exec
+DELETE FROM users
+WHERE id = $1
+`
+
+func (q *Queries) HardDeleteUser(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, hardDeleteUser, id)
+	return err
 }
 
 const listUsers = `-- name: ListUsers :many
@@ -116,7 +125,7 @@ type ListUsersParams struct {
 }
 
 func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error) {
-	rows, err := q.db.Query(ctx, listUsers, arg.Column1, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listUsers, arg.Column1, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -138,6 +147,9 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 		}
 		items = append(items, i)
 	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -156,15 +168,15 @@ RETURNING id, name, email, password, avatar, created_at, updated_at, deleted_at
 `
 
 type UpdateUserParams struct {
-	ID       int64       `json:"id"`
-	Name     string      `json:"name"`
-	Email    string      `json:"email"`
-	Password string      `json:"password"`
-	Avatar   pgtype.Text `json:"avatar"`
+	ID       int64          `json:"id"`
+	Name     string         `json:"name"`
+	Email    string         `json:"email"`
+	Password string         `json:"password"`
+	Avatar   sql.NullString `json:"avatar"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, updateUser,
+	row := q.db.QueryRowContext(ctx, updateUser,
 		arg.ID,
 		arg.Name,
 		arg.Email,

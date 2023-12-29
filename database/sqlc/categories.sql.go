@@ -16,7 +16,7 @@ RETURNING id, name, created_at, updated_at, deleted_at
 `
 
 func (q *Queries) CreateCategory(ctx context.Context, name string) (Category, error) {
-	row := q.db.QueryRow(ctx, createCategory, name)
+	row := q.db.QueryRowContext(ctx, createCategory, name)
 	var i Category
 	err := row.Scan(
 		&i.ID,
@@ -35,7 +35,7 @@ WHERE id = $1
 `
 
 func (q *Queries) DeleteCategory(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, deleteCategory, id)
+	_, err := q.db.ExecContext(ctx, deleteCategory, id)
 	return err
 }
 
@@ -47,7 +47,7 @@ LIMIT 1
 `
 
 func (q *Queries) GetCategoryById(ctx context.Context, id int64) (Category, error) {
-	row := q.db.QueryRow(ctx, getCategoryById, id)
+	row := q.db.QueryRowContext(ctx, getCategoryById, id)
 	var i Category
 	err := row.Scan(
 		&i.ID,
@@ -73,7 +73,7 @@ type ListCategoriesParams struct {
 }
 
 func (q *Queries) ListCategories(ctx context.Context, arg ListCategoriesParams) ([]Category, error) {
-	rows, err := q.db.Query(ctx, listCategories, arg.Column1, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listCategories, arg.Column1, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -91,6 +91,9 @@ func (q *Queries) ListCategories(ctx context.Context, arg ListCategoriesParams) 
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -112,7 +115,7 @@ type UpdateCategoryParams struct {
 }
 
 func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error) {
-	row := q.db.QueryRow(ctx, updateCategory, arg.ID, arg.Name)
+	row := q.db.QueryRowContext(ctx, updateCategory, arg.ID, arg.Name)
 	var i Category
 	err := row.Scan(
 		&i.ID,

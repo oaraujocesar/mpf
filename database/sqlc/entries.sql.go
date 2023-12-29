@@ -7,8 +7,7 @@ package database
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
+	"database/sql"
 )
 
 const createEntry = `-- name: CreateEntry :one
@@ -18,19 +17,19 @@ RETURNING id, title, amount, account_id, installments, type, category_id, invoic
 `
 
 type CreateEntryParams struct {
-	Title        string             `json:"title"`
-	Amount       float64            `json:"amount"`
-	AccountID    pgtype.Int8        `json:"account_id"`
-	Installments pgtype.Int4        `json:"installments"`
-	Type         EntryType          `json:"type"`
-	CategoryID   int64              `json:"category_id"`
-	InvoiceID    pgtype.Int8        `json:"invoice_id"`
-	Payday       pgtype.Timestamptz `json:"payday"`
-	PaidAt       pgtype.Timestamptz `json:"paid_at"`
+	Title        string        `json:"title"`
+	Amount       float64       `json:"amount"`
+	AccountID    sql.NullInt64 `json:"account_id"`
+	Installments sql.NullInt32 `json:"installments"`
+	Type         EntryType     `json:"type"`
+	CategoryID   int64         `json:"category_id"`
+	InvoiceID    sql.NullInt64 `json:"invoice_id"`
+	Payday       sql.NullTime  `json:"payday"`
+	PaidAt       sql.NullTime  `json:"paid_at"`
 }
 
 func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error) {
-	row := q.db.QueryRow(ctx, createEntry,
+	row := q.db.QueryRowContext(ctx, createEntry,
 		arg.Title,
 		arg.Amount,
 		arg.AccountID,
@@ -67,7 +66,7 @@ WHERE id = $1
 `
 
 func (q *Queries) DeleteEntry(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, deleteEntry, id)
+	_, err := q.db.ExecContext(ctx, deleteEntry, id)
 	return err
 }
 
@@ -79,7 +78,7 @@ LIMIT 1
 `
 
 func (q *Queries) GetEntryById(ctx context.Context, id int64) (Entry, error) {
-	row := q.db.QueryRow(ctx, getEntryById, id)
+	row := q.db.QueryRowContext(ctx, getEntryById, id)
 	var i Entry
 	err := row.Scan(
 		&i.ID,
@@ -113,7 +112,7 @@ type ListEntriesParams struct {
 }
 
 func (q *Queries) ListEntries(ctx context.Context, arg ListEntriesParams) ([]Entry, error) {
-	rows, err := q.db.Query(ctx, listEntries, arg.Column1, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listEntries, arg.Column1, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -140,6 +139,9 @@ func (q *Queries) ListEntries(ctx context.Context, arg ListEntriesParams) ([]Ent
 		}
 		items = append(items, i)
 	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -158,15 +160,15 @@ RETURNING id, title, amount, account_id, installments, type, category_id, invoic
 `
 
 type UpdateEntryParams struct {
-	ID         int64              `json:"id"`
-	Title      string             `json:"title"`
-	Amount     float64            `json:"amount"`
-	CategoryID int64              `json:"category_id"`
-	Payday     pgtype.Timestamptz `json:"payday"`
+	ID         int64        `json:"id"`
+	Title      string       `json:"title"`
+	Amount     float64      `json:"amount"`
+	CategoryID int64        `json:"category_id"`
+	Payday     sql.NullTime `json:"payday"`
 }
 
 func (q *Queries) UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entry, error) {
-	row := q.db.QueryRow(ctx, updateEntry,
+	row := q.db.QueryRowContext(ctx, updateEntry,
 		arg.ID,
 		arg.Title,
 		arg.Amount,
@@ -201,12 +203,12 @@ RETURNING id, title, amount, account_id, installments, type, category_id, invoic
 `
 
 type UpdatePaidAtParams struct {
-	ID     int64              `json:"id"`
-	PaidAt pgtype.Timestamptz `json:"paid_at"`
+	ID     int64        `json:"id"`
+	PaidAt sql.NullTime `json:"paid_at"`
 }
 
 func (q *Queries) UpdatePaidAt(ctx context.Context, arg UpdatePaidAtParams) (Entry, error) {
-	row := q.db.QueryRow(ctx, updatePaidAt, arg.ID, arg.PaidAt)
+	row := q.db.QueryRowContext(ctx, updatePaidAt, arg.ID, arg.PaidAt)
 	var i Entry
 	err := row.Scan(
 		&i.ID,

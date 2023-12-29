@@ -7,8 +7,7 @@ package database
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
+	"database/sql"
 )
 
 const createCard = `-- name: CreateCard :one
@@ -18,15 +17,15 @@ RETURNING id, user_id, name, card_limit, due_date, family_id, created_at, update
 `
 
 type CreateCardParams struct {
-	Name      string      `json:"name"`
-	CardLimit float64     `json:"card_limit"`
-	DueDate   int32       `json:"due_date"`
-	UserID    int64       `json:"user_id"`
-	FamilyID  pgtype.Int8 `json:"family_id"`
+	Name      string        `json:"name"`
+	CardLimit float64       `json:"card_limit"`
+	DueDate   int32         `json:"due_date"`
+	UserID    int64         `json:"user_id"`
+	FamilyID  sql.NullInt64 `json:"family_id"`
 }
 
 func (q *Queries) CreateCard(ctx context.Context, arg CreateCardParams) (Card, error) {
-	row := q.db.QueryRow(ctx, createCard,
+	row := q.db.QueryRowContext(ctx, createCard,
 		arg.Name,
 		arg.CardLimit,
 		arg.DueDate,
@@ -55,7 +54,7 @@ WHERE id = $1
 `
 
 func (q *Queries) DeleteCard(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, deleteCard, id)
+	_, err := q.db.ExecContext(ctx, deleteCard, id)
 	return err
 }
 
@@ -67,7 +66,7 @@ LIMIT 1
 `
 
 func (q *Queries) GetCardById(ctx context.Context, id int64) (Card, error) {
-	row := q.db.QueryRow(ctx, getCardById, id)
+	row := q.db.QueryRowContext(ctx, getCardById, id)
 	var i Card
 	err := row.Scan(
 		&i.ID,
@@ -97,7 +96,7 @@ type ListCardsParams struct {
 }
 
 func (q *Queries) ListCards(ctx context.Context, arg ListCardsParams) ([]Card, error) {
-	rows, err := q.db.Query(ctx, listCards, arg.Column1, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listCards, arg.Column1, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -119,6 +118,9 @@ func (q *Queries) ListCards(ctx context.Context, arg ListCardsParams) ([]Card, e
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -144,7 +146,7 @@ type UpdateCardParams struct {
 }
 
 func (q *Queries) UpdateCard(ctx context.Context, arg UpdateCardParams) (Card, error) {
-	row := q.db.QueryRow(ctx, updateCard,
+	row := q.db.QueryRowContext(ctx, updateCard,
 		arg.ID,
 		arg.Name,
 		arg.CardLimit,

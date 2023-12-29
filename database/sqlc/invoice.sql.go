@@ -7,8 +7,8 @@ package database
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
+	"database/sql"
+	"time"
 )
 
 const createInvoice = `-- name: CreateInvoice :one
@@ -18,15 +18,15 @@ RETURNING id, amount, account_id, close_at, card_id, due_at, paid_at, created_at
 `
 
 type CreateInvoiceParams struct {
-	Amount    float64            `json:"amount"`
-	AccountID int64              `json:"account_id"`
-	CloseAt   pgtype.Timestamptz `json:"close_at"`
-	CardID    int64              `json:"card_id"`
-	DueAt     pgtype.Timestamptz `json:"due_at"`
+	Amount    float64   `json:"amount"`
+	AccountID int64     `json:"account_id"`
+	CloseAt   time.Time `json:"close_at"`
+	CardID    int64     `json:"card_id"`
+	DueAt     time.Time `json:"due_at"`
 }
 
 func (q *Queries) CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (Invoice, error) {
-	row := q.db.QueryRow(ctx, createInvoice,
+	row := q.db.QueryRowContext(ctx, createInvoice,
 		arg.Amount,
 		arg.AccountID,
 		arg.CloseAt,
@@ -56,7 +56,7 @@ WHERE id = $1
 `
 
 func (q *Queries) DeleteInvoice(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, deleteInvoice, id)
+	_, err := q.db.ExecContext(ctx, deleteInvoice, id)
 	return err
 }
 
@@ -68,7 +68,7 @@ LIMIT 1
 `
 
 func (q *Queries) GetInvoiceById(ctx context.Context, id int64) (Invoice, error) {
-	row := q.db.QueryRow(ctx, getInvoiceById, id)
+	row := q.db.QueryRowContext(ctx, getInvoiceById, id)
 	var i Invoice
 	err := row.Scan(
 		&i.ID,
@@ -99,7 +99,7 @@ type ListInvoicesParams struct {
 }
 
 func (q *Queries) ListInvoices(ctx context.Context, arg ListInvoicesParams) ([]Invoice, error) {
-	rows, err := q.db.Query(ctx, listInvoices, arg.Column1, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listInvoices, arg.Column1, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -123,6 +123,9 @@ func (q *Queries) ListInvoices(ctx context.Context, arg ListInvoicesParams) ([]I
 		}
 		items = append(items, i)
 	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -141,15 +144,15 @@ RETURNING id, amount, account_id, close_at, card_id, due_at, paid_at, created_at
 `
 
 type UpdateInvoiceParams struct {
-	ID        int64              `json:"id"`
-	DueAt     pgtype.Timestamptz `json:"due_at"`
-	CloseAt   pgtype.Timestamptz `json:"close_at"`
-	AccountID int64              `json:"account_id"`
-	PaidAt    pgtype.Timestamptz `json:"paid_at"`
+	ID        int64        `json:"id"`
+	DueAt     time.Time    `json:"due_at"`
+	CloseAt   time.Time    `json:"close_at"`
+	AccountID int64        `json:"account_id"`
+	PaidAt    sql.NullTime `json:"paid_at"`
 }
 
 func (q *Queries) UpdateInvoice(ctx context.Context, arg UpdateInvoiceParams) (Invoice, error) {
-	row := q.db.QueryRow(ctx, updateInvoice,
+	row := q.db.QueryRowContext(ctx, updateInvoice,
 		arg.ID,
 		arg.DueAt,
 		arg.CloseAt,
@@ -186,7 +189,7 @@ type UpdateInvoiceAmountParams struct {
 }
 
 func (q *Queries) UpdateInvoiceAmount(ctx context.Context, arg UpdateInvoiceAmountParams) (Invoice, error) {
-	row := q.db.QueryRow(ctx, updateInvoiceAmount, arg.ID, arg.Amount)
+	row := q.db.QueryRowContext(ctx, updateInvoiceAmount, arg.ID, arg.Amount)
 	var i Invoice
 	err := row.Scan(
 		&i.ID,

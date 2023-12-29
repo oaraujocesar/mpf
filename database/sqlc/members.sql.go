@@ -21,7 +21,7 @@ type CreateMemberParams struct {
 }
 
 func (q *Queries) CreateMember(ctx context.Context, arg CreateMemberParams) (Member, error) {
-	row := q.db.QueryRow(ctx, createMember, arg.FamilyID, arg.UserID)
+	row := q.db.QueryRowContext(ctx, createMember, arg.FamilyID, arg.UserID)
 	var i Member
 	err := row.Scan(
 		&i.ID,
@@ -41,7 +41,7 @@ WHERE id = $1
 `
 
 func (q *Queries) DeleteMember(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, deleteMember, id)
+	_, err := q.db.ExecContext(ctx, deleteMember, id)
 	return err
 }
 
@@ -53,7 +53,7 @@ LIMIT 1
 `
 
 func (q *Queries) GetMemberById(ctx context.Context, id int64) (Member, error) {
-	row := q.db.QueryRow(ctx, getMemberById, id)
+	row := q.db.QueryRowContext(ctx, getMemberById, id)
 	var i Member
 	err := row.Scan(
 		&i.ID,
@@ -80,7 +80,7 @@ type ListMembersParams struct {
 }
 
 func (q *Queries) ListMembers(ctx context.Context, arg ListMembersParams) ([]Member, error) {
-	rows, err := q.db.Query(ctx, listMembers, arg.Column1, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listMembers, arg.Column1, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -99,6 +99,9 @@ func (q *Queries) ListMembers(ctx context.Context, arg ListMembersParams) ([]Mem
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

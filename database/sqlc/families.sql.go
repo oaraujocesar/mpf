@@ -21,7 +21,7 @@ type CreateFamilyParams struct {
 }
 
 func (q *Queries) CreateFamily(ctx context.Context, arg CreateFamilyParams) (Family, error) {
-	row := q.db.QueryRow(ctx, createFamily, arg.Name, arg.UserID)
+	row := q.db.QueryRowContext(ctx, createFamily, arg.Name, arg.UserID)
 	var i Family
 	err := row.Scan(
 		&i.ID,
@@ -41,7 +41,7 @@ WHERE id = $1
 `
 
 func (q *Queries) DeleteFamily(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, deleteFamily, id)
+	_, err := q.db.ExecContext(ctx, deleteFamily, id)
 	return err
 }
 
@@ -53,7 +53,7 @@ LIMIT 1
 `
 
 func (q *Queries) GetFamilyById(ctx context.Context, id int64) (Family, error) {
-	row := q.db.QueryRow(ctx, getFamilyById, id)
+	row := q.db.QueryRowContext(ctx, getFamilyById, id)
 	var i Family
 	err := row.Scan(
 		&i.ID,
@@ -80,7 +80,7 @@ type ListFamiliesParams struct {
 }
 
 func (q *Queries) ListFamilies(ctx context.Context, arg ListFamiliesParams) ([]Family, error) {
-	rows, err := q.db.Query(ctx, listFamilies, arg.Column1, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listFamilies, arg.Column1, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -99,6 +99,9 @@ func (q *Queries) ListFamilies(ctx context.Context, arg ListFamiliesParams) ([]F
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -120,7 +123,7 @@ type UpdateFamilyParams struct {
 }
 
 func (q *Queries) UpdateFamily(ctx context.Context, arg UpdateFamilyParams) (Family, error) {
-	row := q.db.QueryRow(ctx, updateFamily, arg.ID, arg.Name)
+	row := q.db.QueryRowContext(ctx, updateFamily, arg.ID, arg.Name)
 	var i Family
 	err := row.Scan(
 		&i.ID,
