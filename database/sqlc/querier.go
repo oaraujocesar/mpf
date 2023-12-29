@@ -6,26 +6,57 @@ package database
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
-	CreateAuthor(ctx context.Context, arg CreateAuthorParams) (User, error)
+	CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
+	CreateCard(ctx context.Context, arg CreateCardParams) (Card, error)
 	CreateCategory(ctx context.Context, name string) (Category, error)
 	CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error)
-	DeleteAuthor(ctx context.Context, id pgtype.UUID) error
-	DeleteCategory(ctx context.Context, id pgtype.UUID) error
-	DeleteEntry(ctx context.Context, id pgtype.UUID) error
-	GetAuthor(ctx context.Context, email string) (User, error)
-	GetCategory(ctx context.Context, name string) (Category, error)
-	GetEntry(ctx context.Context, id pgtype.UUID) (Entry, error)
-	ListAuthors(ctx context.Context, arg ListAuthorsParams) ([]User, error)
+	CreateFamily(ctx context.Context, arg CreateFamilyParams) (Family, error)
+	CreateInstallment(ctx context.Context, arg CreateInstallmentParams) (Installment, error)
+	CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (Invoice, error)
+	CreateMember(ctx context.Context, arg CreateMemberParams) (Member, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteAccount(ctx context.Context, id int64) error
+	DeleteCard(ctx context.Context, id int64) error
+	DeleteCategory(ctx context.Context, id int64) error
+	DeleteEntry(ctx context.Context, id int64) error
+	DeleteFamily(ctx context.Context, id int64) error
+	DeleteInstallment(ctx context.Context, id int64) error
+	DeleteInvoice(ctx context.Context, id int64) error
+	DeleteMember(ctx context.Context, id int64) error
+	DeleteUser(ctx context.Context, id int64) error
+	GetAccountById(ctx context.Context, id int64) (Account, error)
+	GetCardById(ctx context.Context, id int64) (Card, error)
+	GetCategoryById(ctx context.Context, id int64) (Category, error)
+	GetEntryById(ctx context.Context, id int64) (Entry, error)
+	GetFamilyById(ctx context.Context, id int64) (Family, error)
+	GetInstallmentById(ctx context.Context, id int64) (Installment, error)
+	GetInvoiceById(ctx context.Context, id int64) (Invoice, error)
+	GetMemberById(ctx context.Context, id int64) (Member, error)
+	GetUserByEmail(ctx context.Context, email string) (User, error)
+	GetUserById(ctx context.Context, id int64) (User, error)
+	ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error)
+	ListCards(ctx context.Context, arg ListCardsParams) ([]Card, error)
 	ListCategories(ctx context.Context, arg ListCategoriesParams) ([]Category, error)
 	ListEntries(ctx context.Context, arg ListEntriesParams) ([]Entry, error)
-	UpdateAuthor(ctx context.Context, arg UpdateAuthorParams) (User, error)
+	ListFamilies(ctx context.Context, arg ListFamiliesParams) ([]Family, error)
+	ListInstallments(ctx context.Context, arg ListInstallmentsParams) ([]Installment, error)
+	ListInvoices(ctx context.Context, arg ListInvoicesParams) ([]Invoice, error)
+	ListMembers(ctx context.Context, arg ListMembersParams) ([]Member, error)
+	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
+	UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error)
+	UpdateBalance(ctx context.Context, arg UpdateBalanceParams) (Account, error)
+	UpdateCard(ctx context.Context, arg UpdateCardParams) (Card, error)
 	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error)
 	UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entry, error)
+	UpdateFamily(ctx context.Context, arg UpdateFamilyParams) (Family, error)
+	UpdateInstallment(ctx context.Context, arg UpdateInstallmentParams) (Installment, error)
+	UpdateInvoice(ctx context.Context, arg UpdateInvoiceParams) (Invoice, error)
+	UpdateInvoiceAmount(ctx context.Context, arg UpdateInvoiceAmountParams) (Invoice, error)
+	UpdatePaidAt(ctx context.Context, arg UpdatePaidAtParams) (Entry, error)
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)

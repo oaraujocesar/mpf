@@ -14,8 +14,8 @@ import (
 type EntryType string
 
 const (
-	EntryTypeIncome  EntryType = "income"
-	EntryTypeExpense EntryType = "expense"
+	EntryTypeINCOME  EntryType = "INCOME"
+	EntryTypeEXPENSE EntryType = "EXPENSE"
 )
 
 func (e *EntryType) Scan(src interface{}) error {
@@ -53,8 +53,30 @@ func (ns NullEntryType) Value() (driver.Value, error) {
 	return string(ns.EntryType), nil
 }
 
+type Account struct {
+	ID        int64              `json:"id"`
+	Name      string             `json:"name"`
+	Balance   float64            `json:"balance"`
+	UserID    int64              `json:"user_id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
+}
+
+type Card struct {
+	ID        int64              `json:"id"`
+	UserID    int64              `json:"user_id"`
+	Name      string             `json:"name"`
+	CardLimit float64            `json:"card_limit"`
+	DueDate   int32              `json:"due_date"`
+	FamilyID  pgtype.Int8        `json:"family_id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
+}
+
 type Category struct {
-	ID        pgtype.UUID        `json:"id"`
+	ID        int64              `json:"id"`
 	Name      string             `json:"name"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
@@ -62,23 +84,69 @@ type Category struct {
 }
 
 type Entry struct {
-	ID         pgtype.UUID        `json:"id"`
-	Title      string             `json:"title"`
-	Amount     pgtype.Numeric     `json:"amount"`
-	Type       EntryType          `json:"type"`
-	UserID     pgtype.UUID        `json:"user_id"`
-	CategoryID pgtype.UUID        `json:"category_id"`
-	CreatedAt  pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
-	DeletedAt  pgtype.Timestamptz `json:"deleted_at"`
+	ID           int64              `json:"id"`
+	Title        string             `json:"title"`
+	Amount       float64            `json:"amount"`
+	AccountID    pgtype.Int8        `json:"account_id"`
+	Installments pgtype.Int4        `json:"installments"`
+	Type         EntryType          `json:"type"`
+	CategoryID   int64              `json:"category_id"`
+	InvoiceID    pgtype.Int8        `json:"invoice_id"`
+	Payday       pgtype.Timestamptz `json:"payday"`
+	PaidAt       pgtype.Timestamptz `json:"paid_at"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt    pgtype.Timestamptz `json:"deleted_at"`
+}
+
+type Family struct {
+	ID        int64              `json:"id"`
+	Name      string             `json:"name"`
+	UserID    int64              `json:"user_id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
+}
+
+type Installment struct {
+	ID        int64              `json:"id"`
+	Amount    float64            `json:"amount"`
+	EntryID   int64              `json:"entry_id"`
+	Payday    pgtype.Timestamptz `json:"payday"`
+	PaidAt    pgtype.Timestamptz `json:"paid_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
+}
+
+type Invoice struct {
+	ID        int64              `json:"id"`
+	Amount    float64            `json:"amount"`
+	AccountID int64              `json:"account_id"`
+	CloseAt   pgtype.Timestamptz `json:"close_at"`
+	CardID    int64              `json:"card_id"`
+	DueAt     pgtype.Timestamptz `json:"due_at"`
+	PaidAt    pgtype.Timestamptz `json:"paid_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
+}
+
+type Member struct {
+	ID        int64              `json:"id"`
+	FamilyID  int64              `json:"family_id"`
+	UserID    int64              `json:"user_id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
 }
 
 type User struct {
-	ID        pgtype.UUID        `json:"id"`
+	ID        int64              `json:"id"`
 	Name      string             `json:"name"`
-	Avatar    pgtype.Text        `json:"avatar"`
 	Email     string             `json:"email"`
 	Password  string             `json:"password"`
+	Avatar    pgtype.Text        `json:"avatar"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
