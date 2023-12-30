@@ -10,12 +10,14 @@ services:
     ports:
       - "${DB_PORT}:${DB_PORT}"
     volumes:
+      - ./scripts/database:/docker-entrypoint-initdb.d
       - db:/var/lib/postgresql/data
     environment:
       POSTGRES_HOST: ${DB_HOST}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
+      POSTGRES_MULTIPLE_DATABASE: '${DB_NAME}_test'
     networks:
       - app-network
   server:
