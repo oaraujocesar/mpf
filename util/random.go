@@ -48,5 +48,5 @@ func RandomPassword(n int) string {
 
 // Random Money returns a random amount of money.
 func RandomMoney() int64 {
-	return RandomInt(0, 1000)
+	return RandomInt(1, 1000)
 }

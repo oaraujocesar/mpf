@@ -6,8 +6,7 @@ RETURNING *;
 -- name: ListAccounts :many
 SELECT *
 FROM accounts
-ORDER BY $1
-LIMIT $2 OFFSET $3;
+LIMIT $1 OFFSET $2;
 
 -- name: GetAccountById :one
 SELECT *
