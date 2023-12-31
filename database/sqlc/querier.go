@@ -37,6 +37,7 @@ type Querier interface {
 	GetMemberById(ctx context.Context, id int64) (Member, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, id int64) (User, error)
+	HardDeleteCategory(ctx context.Context, id int64) error
 	HardDeleteUser(ctx context.Context, id int64) error
 	ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error)
 	ListCards(ctx context.Context, arg ListCardsParams) ([]Card, error)

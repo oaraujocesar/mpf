@@ -29,7 +29,7 @@ func TestCreateCategory(t *testing.T) {
 	require.NotEmpty(t, category)
 
 	t.Cleanup(func() {
-		err := testQueries.DeleteCategory(context.Background(), category.ID)
+		err := testQueries.HardDeleteCategory(context.Background(), category.ID)
 		require.NoError(t, err)
 	})
 }
@@ -46,7 +46,10 @@ func TestGetCategoryById(t *testing.T) {
 	require.Equal(t, category.UpdatedAt, category2.UpdatedAt)
 
 	t.Cleanup(func() {
-		err := testQueries.DeleteCategory(context.Background(), category.ID)
+		err := testQueries.HardDeleteCategory(context.Background(), category.ID)
+		require.NoError(t, err)
+
+		err = testQueries.HardDeleteCategory(context.Background(), category2.ID)
 		require.NoError(t, err)
 	})
 }
@@ -62,6 +65,14 @@ func TestSoftDeleteCategory(t *testing.T) {
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, category2)
 	require.NotNil(t, category2.DeletedAt)
+
+	t.Cleanup(func() {
+		err := testQueries.HardDeleteCategory(context.Background(), category.ID)
+		require.NoError(t, err)
+
+		err = testQueries.HardDeleteCategory(context.Background(), category2.ID)
+		require.NoError(t, err)
+	})
 }
 
 func TestListCategories(t *testing.T) {
@@ -84,6 +95,13 @@ func TestListCategories(t *testing.T) {
 		require.NotZero(t, category.CreatedAt)
 		require.NotZero(t, category.UpdatedAt)
 	}
+
+	t.Cleanup(func() {
+		for _, category := range categories {
+			err := testQueries.HardDeleteCategory(context.Background(), category.ID)
+			require.NoError(t, err)
+		}
+	})
 }
 
 func TestUpdateCategory(t *testing.T) {
@@ -104,4 +122,12 @@ func TestUpdateCategory(t *testing.T) {
 	require.Equal(t, newCategoryName, category2.Name)
 	require.Equal(t, category.CreatedAt, category2.CreatedAt)
 	require.NotEqual(t, category.UpdatedAt, category2.UpdatedAt)
+
+	t.Cleanup(func() {
+		err := testQueries.HardDeleteCategory(context.Background(), category.ID)
+		require.NoError(t, err)
+
+		err = testQueries.HardDeleteCategory(context.Background(), category2.ID)
+		require.NoError(t, err)
+	})
 }

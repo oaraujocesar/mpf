@@ -25,3 +25,8 @@ RETURNING *;
 UPDATE categories
 SET deleted_at = NOW()
 WHERE id = $1;
+
+-- name: HardDeleteCategory :exec
+DELETE FROM categories
+WHERE id = $1;
+

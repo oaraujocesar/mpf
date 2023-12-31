@@ -59,6 +59,16 @@ func (q *Queries) GetCategoryById(ctx context.Context, id int64) (Category, erro
 	return i, err
 }
 
+const hardDeleteCategory = `-- name: HardDeleteCategory :exec
+DELETE FROM categories
+WHERE id = $1
+`
+
+func (q *Queries) HardDeleteCategory(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, hardDeleteCategory, id)
+	return err
+}
+
 const listCategories = `-- name: ListCategories :many
 SELECT id, name, created_at, updated_at, deleted_at
 FROM categories
