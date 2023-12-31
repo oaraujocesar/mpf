@@ -124,6 +124,28 @@ func TestUpdateUser(t *testing.T) {
 	})
 }
 
+func TestListUsers(t *testing.T) {
+	for i := 0; i < 10; i++ {
+		createRandomUser(t)
+	}
+
+	arg := ListUsersParams{
+		Limit:  10,
+		Offset: 0,
+	}
+
+	users, err := testQueries.ListUsers(context.Background(), arg)
+	require.NoError(t, err)
+	require.Len(t, users, 10)
+
+	for _, user := range users {
+		require.NotEmpty(t, user)
+		require.NotZero(t, user.ID)
+		require.NotZero(t, user.CreatedAt)
+		require.NotZero(t, user.UpdatedAt)
+	}
+}
+
 func TestSoftDeleteUser(t *testing.T) {
 	user1 := createRandomUser(t)
 
