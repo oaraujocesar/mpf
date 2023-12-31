@@ -6,8 +6,7 @@ RETURNING *;
 -- name: ListCategories :many
 SELECT *
 FROM categories
-ORDER BY $1
-LIMIT $2 OFFSET $3;
+LIMIT $1 OFFSET $2;
 
 -- name: GetCategoryById :one
 SELECT *

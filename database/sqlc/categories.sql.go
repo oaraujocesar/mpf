@@ -62,18 +62,16 @@ func (q *Queries) GetCategoryById(ctx context.Context, id int64) (Category, erro
 const listCategories = `-- name: ListCategories :many
 SELECT id, name, created_at, updated_at, deleted_at
 FROM categories
-ORDER BY $1
-LIMIT $2 OFFSET $3
+LIMIT $1 OFFSET $2
 `
 
 type ListCategoriesParams struct {
-	Column1 interface{} `json:"column_1"`
-	Limit   int32       `json:"limit"`
-	Offset  int32       `json:"offset"`
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
 }
 
 func (q *Queries) ListCategories(ctx context.Context, arg ListCategoriesParams) ([]Category, error) {
-	rows, err := q.db.QueryContext(ctx, listCategories, arg.Column1, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listCategories, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
