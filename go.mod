@@ -3,8 +3,6 @@ module github.com/oaraujocesar/mpf
 go 1.21
 
 require (
-	github.com/go-chi/chi v1.5.5
-	github.com/go-chi/cors v1.2.1
 	github.com/go-chi/jwtauth v1.2.0
 	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/jackc/pgx/v5 v5.3.1
@@ -16,6 +14,7 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/go-chi/chi v1.5.5 // indirect
 	github.com/goccy/go-json v0.9.11 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
