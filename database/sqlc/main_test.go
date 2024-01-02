@@ -18,6 +18,7 @@ const (
 )
 
 var testQueries *Queries
+var migrations *migrate.Migrate
 
 func TestMain(m *testing.M) {
 	conn, err := sql.Open(dbDriver, dbSource)
@@ -25,18 +26,30 @@ func TestMain(m *testing.M) {
 		log.Fatal("cannot connect to database: ", err)
 	}
 
+	testQueries = New(conn)
+	migrations = setupMigrations(conn)
+
+	os.Exit(m.Run())
+}
+
+func setupMigrations(conn *sql.DB) *migrate.Migrate {
 	driver, err := postgres.WithInstance(conn, &postgres.Config{})
 	if err != nil {
 		log.Fatal("cannot connect to database: ", err)
 	}
 
-	migration, err := migrate.NewWithDatabaseInstance("file://../migrations", dbDriver, driver)
+	migrate, err := migrate.NewWithDatabaseInstance("file://../migrations", dbDriver, driver)
 	if err != nil {
 		log.Fatal("cannot migrate database: ", err)
 	}
 
-	testQueries = New(conn)
-	migration.Up()
+	return migrate
+}
 
-	os.Exit(m.Run())
+func setupTest(migrate *migrate.Migrate) {
+	migrate.Up()
+}
+
+func teardownTest(migrate *migrate.Migrate) {
+	migrate.Down()
 }

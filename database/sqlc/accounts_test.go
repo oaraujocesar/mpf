@@ -19,25 +19,28 @@ func createRandomAccount(t *testing.T) Account {
 	}
 
 	account, err := testQueries.CreateAccount(context.Background(), arg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+	require.NotEmpty(t, account)
+	require.Equal(t, arg.Balance, account.Balance)
+	require.Equal(t, arg.Name, account.Name)
+	require.Equal(t, arg.UserID, account.UserID)
+	require.NotZero(t, account.ID)
+	require.NotZero(t, account.CreatedAt)
+	require.NotZero(t, account.UpdatedAt)
 
 	return account
 }
 
 func TestCreateAccount(t *testing.T) {
+	setupTest(migrations)
 	account := createRandomAccount(t)
 
 	require.NotEmpty(t, account)
-
-	t.Cleanup(func() {
-		err := testQueries.DeleteAccount(context.Background(), account.ID)
-		require.NoError(t, err)
-	})
+	teardownTest(migrations)
 }
 
 func TestGetAccountById(t *testing.T) {
+	setupTest(migrations)
 	account := createRandomAccount(t)
 
 	account2, err := testQueries.GetAccountById(context.Background(), account.ID)
@@ -50,14 +53,11 @@ func TestGetAccountById(t *testing.T) {
 	require.Equal(t, account.Balance, account2.Balance)
 	require.Equal(t, account.Name, account2.Name)
 	require.Equal(t, account.UserID, account2.UserID)
-
-	t.Cleanup(func() {
-		err := testQueries.DeleteAccount(context.Background(), account.ID)
-		require.NoError(t, err)
-	})
+	teardownTest(migrations)
 }
 
 func TestSoftDeleteAccount(t *testing.T) {
+	setupTest(migrations)
 	account := createRandomAccount(t)
 
 	err := testQueries.DeleteAccount(context.Background(), account.ID)
@@ -68,9 +68,11 @@ func TestSoftDeleteAccount(t *testing.T) {
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, account2)
 	require.NotNil(t, account2.DeletedAt)
+	teardownTest(migrations)
 }
 
 func TestListAccounts(t *testing.T) {
+	setupTest(migrations)
 	for i := 0; i < 10; i++ {
 		createRandomAccount(t)
 	}
@@ -90,9 +92,11 @@ func TestListAccounts(t *testing.T) {
 		require.NotZero(t, account.Balance)
 		require.NotEmpty(t, account.Name)
 	}
+	teardownTest(migrations)
 }
 
 func TestUpdateAccount(t *testing.T) {
+	setupTest(migrations)
 	account := createRandomAccount(t)
 
 	arg := UpdateAccountParams{
@@ -110,9 +114,11 @@ func TestUpdateAccount(t *testing.T) {
 	require.Equal(t, account.UserID, account2.UserID)
 	require.NotEqual(t, account.Balance, account2.Balance)
 	require.NotEqual(t, account.UpdatedAt, account2.UpdatedAt)
+	teardownTest(migrations)
 }
 
 func TestUpdateBalance(t *testing.T) {
+	setupTest(migrations)
 	account := createRandomAccount(t)
 
 	arg := UpdateBalanceParams{
@@ -129,4 +135,5 @@ func TestUpdateBalance(t *testing.T) {
 	require.Equal(t, account.UserID, account2.UserID)
 	require.NotEqual(t, account.Balance, account2.Balance)
 	require.NotEqual(t, account.UpdatedAt, account2.UpdatedAt)
+	teardownTest(migrations)
 }

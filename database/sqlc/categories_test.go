@@ -24,17 +24,15 @@ func createRandomCategory(t *testing.T) Category {
 }
 
 func TestCreateCategory(t *testing.T) {
+	setupTest(migrations)
 	category := createRandomCategory(t)
 
 	require.NotEmpty(t, category)
-
-	t.Cleanup(func() {
-		err := testQueries.HardDeleteCategory(context.Background(), category.ID)
-		require.NoError(t, err)
-	})
+	teardownTest(migrations)
 }
 
 func TestGetCategoryById(t *testing.T) {
+	setupTest(migrations)
 	category := createRandomCategory(t)
 
 	category2, err := testQueries.GetCategoryById(context.Background(), category.ID)
@@ -45,16 +43,11 @@ func TestGetCategoryById(t *testing.T) {
 	require.Equal(t, category.CreatedAt, category2.CreatedAt)
 	require.Equal(t, category.UpdatedAt, category2.UpdatedAt)
 
-	t.Cleanup(func() {
-		err := testQueries.HardDeleteCategory(context.Background(), category.ID)
-		require.NoError(t, err)
-
-		err = testQueries.HardDeleteCategory(context.Background(), category2.ID)
-		require.NoError(t, err)
-	})
+	teardownTest(migrations)
 }
 
 func TestSoftDeleteCategory(t *testing.T) {
+	setupTest(migrations)
 	category := createRandomCategory(t)
 
 	err := testQueries.DeleteCategory(context.Background(), category.ID)
@@ -66,16 +59,11 @@ func TestSoftDeleteCategory(t *testing.T) {
 	require.Empty(t, category2)
 	require.NotNil(t, category2.DeletedAt)
 
-	t.Cleanup(func() {
-		err := testQueries.HardDeleteCategory(context.Background(), category.ID)
-		require.NoError(t, err)
-
-		err = testQueries.HardDeleteCategory(context.Background(), category2.ID)
-		require.NoError(t, err)
-	})
+	teardownTest(migrations)
 }
 
 func TestListCategories(t *testing.T) {
+	setupTest(migrations)
 	for i := 0; i < 10; i++ {
 		createRandomCategory(t)
 	}
@@ -96,15 +84,11 @@ func TestListCategories(t *testing.T) {
 		require.NotZero(t, category.UpdatedAt)
 	}
 
-	t.Cleanup(func() {
-		for _, category := range categories {
-			err := testQueries.HardDeleteCategory(context.Background(), category.ID)
-			require.NoError(t, err)
-		}
-	})
+	teardownTest(migrations)
 }
 
 func TestUpdateCategory(t *testing.T) {
+	setupTest(migrations)
 	category := createRandomCategory(t)
 
 	newCategoryName := util.RandomName()
@@ -122,12 +106,5 @@ func TestUpdateCategory(t *testing.T) {
 	require.Equal(t, newCategoryName, category2.Name)
 	require.Equal(t, category.CreatedAt, category2.CreatedAt)
 	require.NotEqual(t, category.UpdatedAt, category2.UpdatedAt)
-
-	t.Cleanup(func() {
-		err := testQueries.HardDeleteCategory(context.Background(), category.ID)
-		require.NoError(t, err)
-
-		err = testQueries.HardDeleteCategory(context.Background(), category2.ID)
-		require.NoError(t, err)
-	})
+	teardownTest(migrations)
 }

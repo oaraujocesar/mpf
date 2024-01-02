@@ -36,15 +36,13 @@ func createRandomUser(t *testing.T) User {
 }
 
 func TestCreateUser(t *testing.T) {
-	user := createRandomUser(t)
-
-	t.Cleanup(func() {
-		err := testQueries.DeleteUser(context.Background(), user.ID)
-		require.NoError(t, err)
-	})
+	setupTest(migrations)
+	createRandomUser(t)
+	teardownTest(migrations)
 }
 
 func TestGetUserByEmail(t *testing.T) {
+	setupTest(migrations)
 	user1 := createRandomUser(t)
 	user2, err := testQueries.GetUserByEmail(context.Background(), user1.Email)
 
@@ -60,17 +58,11 @@ func TestGetUserByEmail(t *testing.T) {
 
 	require.WithinDuration(t, user1.CreatedAt, user2.CreatedAt, time.Second)
 	require.WithinDuration(t, user1.UpdatedAt, user2.UpdatedAt, time.Second)
-
-	t.Cleanup(func() {
-		err := testQueries.HardDeleteUser(context.Background(), user1.ID)
-		require.NoError(t, err)
-
-		err = testQueries.HardDeleteUser(context.Background(), user2.ID)
-		require.NoError(t, err)
-	})
+	teardownTest(migrations)
 }
 
 func TestGetUserByID(t *testing.T) {
+	setupTest(migrations)
 	user1 := createRandomUser(t)
 	user2, err := testQueries.GetUserById(context.Background(), user1.ID)
 
@@ -80,17 +72,11 @@ func TestGetUserByID(t *testing.T) {
 	require.Equal(t, user1.ID, user2.ID)
 	require.Equal(t, user1.Name, user2.Name)
 	require.Equal(t, user1.Email, user2.Email)
-
-	t.Cleanup(func() {
-		err := testQueries.HardDeleteUser(context.Background(), user1.ID)
-		require.NoError(t, err)
-
-		err = testQueries.HardDeleteUser(context.Background(), user2.ID)
-		require.NoError(t, err)
-	})
+	teardownTest(migrations)
 }
 
 func TestUpdateUser(t *testing.T) {
+	setupTest(migrations)
 	user1 := createRandomUser(t)
 
 	arg := UpdateUserParams{
@@ -114,17 +100,11 @@ func TestUpdateUser(t *testing.T) {
 
 	require.WithinDuration(t, user1.CreatedAt, user2.CreatedAt, time.Second)
 	require.WithinDuration(t, user1.UpdatedAt, user2.UpdatedAt, time.Second)
-
-	t.Cleanup(func() {
-		err := testQueries.HardDeleteUser(context.Background(), user1.ID)
-		require.NoError(t, err)
-
-		err = testQueries.HardDeleteUser(context.Background(), user2.ID)
-		require.NoError(t, err)
-	})
+	teardownTest(migrations)
 }
 
 func TestListUsers(t *testing.T) {
+	setupTest(migrations)
 	for i := 0; i < 10; i++ {
 		createRandomUser(t)
 	}
@@ -144,9 +124,12 @@ func TestListUsers(t *testing.T) {
 		require.NotZero(t, user.CreatedAt)
 		require.NotZero(t, user.UpdatedAt)
 	}
+
+	teardownTest(migrations)
 }
 
 func TestSoftDeleteUser(t *testing.T) {
+	setupTest(migrations)
 	user1 := createRandomUser(t)
 
 	err := testQueries.DeleteUser(context.Background(), user1.ID)
@@ -157,9 +140,11 @@ func TestSoftDeleteUser(t *testing.T) {
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, user2)
 	require.NotNil(t, user2.DeletedAt)
+	teardownTest(migrations)
 }
 
 func TestHardDeleteUser(t *testing.T) {
+	setupTest(migrations)
 	user1 := createRandomUser(t)
 
 	err := testQueries.HardDeleteUser(context.Background(), user1.ID)
@@ -169,4 +154,5 @@ func TestHardDeleteUser(t *testing.T) {
 	require.Error(t, err)
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, user2)
+	teardownTest(migrations)
 }
