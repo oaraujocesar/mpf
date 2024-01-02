@@ -13,6 +13,8 @@ migrate-down-test:
 create-test-db:
 	docker compose exec database psql -U postgres -c "CREATE DATABASE mpf_test"
 test:
-	docker compose exec server go test -v -cover ./...
+	docker compose exec server go test -v -coverprofile=c.out -cover ./...
+test-coverage:
+	go tool cover -html="c.out"
 
-.PHONY: generate migration-create migrate-up migrate-down migrate-up-test migrate-down-test test 
+.PHONY: generate migration-create migrate-up migrate-down migrate-up-test migrate-down-test test test-coverage
