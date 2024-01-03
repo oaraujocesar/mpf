@@ -145,9 +145,9 @@ func TestSoftDeleteCard(t *testing.T) {
 	require.NoError(t, err)
 
 	card, err = testQueries.GetCardById(context.Background(), card.ID)
-	require.NoError(t, err)
-	require.NotEmpty(t, card)
-	require.NotZero(t, card.DeletedAt)
+	require.Error(t, err)
+	require.EqualError(t, err, sql.ErrNoRows.Error())
+	require.Empty(t, card)
 
 	teardownTest(migrations)
 }
