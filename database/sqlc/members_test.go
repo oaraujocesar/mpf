@@ -48,13 +48,12 @@ func TestCreateFamilyMember(t *testing.T) {
 func TestDeleteMember(t *testing.T) {
 	setupTest(migrations)
 
-	user := createRandomUser(t)
 	family := createRandomFamily(t)
+	user := createRandomUser(t)
 
-	member, err := testQueries.CreateMember(context.Background(), CreateMemberParams{FamilyID: family.ID, UserID: user.ID})
-	require.NoError(t, err)
+	member := createRandomMember(t, family, user)
 
-	err = testQueries.DeleteMember(context.Background(), member.ID)
+	err := testQueries.DeleteMember(context.Background(), member.ID)
 	require.NoError(t, err)
 
 	member, err = testQueries.GetMemberById(context.Background(), member.ID)
