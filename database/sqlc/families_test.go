@@ -30,14 +30,14 @@ func createRandomFamily(t *testing.T, tx *sql.Tx) Family {
 
 func TestCreateFamily(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	createRandomFamily(t, tx)
-
-	tx.Rollback()
 }
 
 func TestGetFamilyById(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	family := createRandomFamily(t, tx)
 
@@ -47,12 +47,11 @@ func TestGetFamilyById(t *testing.T) {
 	require.Equal(t, family.ID, family2.ID)
 	require.Equal(t, family.Name, family2.Name)
 	require.Equal(t, family.UserID, family2.UserID)
-
-	tx.Rollback()
 }
 
 func TestUpdateFamily(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	family := createRandomFamily(t, tx)
 
@@ -68,12 +67,11 @@ func TestUpdateFamily(t *testing.T) {
 	require.Equal(t, arg.Name, family2.Name)
 	require.Equal(t, family.CreatedAt, family2.CreatedAt, time.Second)
 	require.WithinDuration(t, family.UpdatedAt, family2.UpdatedAt, time.Second)
-
-	tx.Rollback()
 }
 
 func TestListFamilies(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	for i := 0; i < 10; i++ {
 		createRandomFamily(t, tx)
@@ -95,12 +93,11 @@ func TestListFamilies(t *testing.T) {
 		require.NotZero(t, family.CreatedAt)
 		require.NotZero(t, family.UpdatedAt)
 	}
-
-	tx.Rollback()
 }
 
 func TestDeleteFamily(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	family := createRandomFamily(t, tx)
 
@@ -111,6 +108,4 @@ func TestDeleteFamily(t *testing.T) {
 	require.Error(t, err)
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, family2)
-
-	tx.Rollback()
 }

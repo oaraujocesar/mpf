@@ -34,15 +34,17 @@ func createRandomAccount(t *testing.T, tx *sql.Tx) Account {
 
 func TestCreateAccount(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
+
 	account := createRandomAccount(t, tx)
 
 	require.NotEmpty(t, account)
-
-	tx.Rollback()
 }
 
 func TestGetAccountById(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
+
 	account := createRandomAccount(t, tx)
 
 	account2, err := testStore.WithTx(tx).GetAccountById(context.Background(), account.ID)
@@ -55,11 +57,12 @@ func TestGetAccountById(t *testing.T) {
 	require.Equal(t, account.Balance, account2.Balance)
 	require.Equal(t, account.Name, account2.Name)
 	require.Equal(t, account.UserID, account2.UserID)
-	tx.Rollback()
 }
 
 func TestSoftDeleteAccount(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
+
 	account := createRandomAccount(t, tx)
 
 	err := testStore.WithTx(tx).DeleteAccount(context.Background(), account.ID)
@@ -70,11 +73,11 @@ func TestSoftDeleteAccount(t *testing.T) {
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, account2)
 	require.NotNil(t, account2.DeletedAt)
-	tx.Rollback()
 }
 
 func TestListAccounts(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	for i := 0; i < 10; i++ {
 		createRandomAccount(t, tx)
@@ -95,11 +98,12 @@ func TestListAccounts(t *testing.T) {
 		require.NotZero(t, account.Balance)
 		require.NotEmpty(t, account.Name)
 	}
-	tx.Rollback()
 }
 
 func TestUpdateAccount(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
+
 	account := createRandomAccount(t, tx)
 
 	arg := UpdateAccountParams{
@@ -117,11 +121,12 @@ func TestUpdateAccount(t *testing.T) {
 	require.Equal(t, account.UserID, account2.UserID)
 	require.NotEqual(t, account.Balance, account2.Balance)
 	require.WithinDuration(t, account.UpdatedAt, account2.UpdatedAt, time.Second)
-	tx.Rollback()
 }
 
 func TestUpdateBalance(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
+
 	account := createRandomAccount(t, tx)
 
 	arg := UpdateBalanceParams{
@@ -138,5 +143,4 @@ func TestUpdateBalance(t *testing.T) {
 	require.Equal(t, account.UserID, account2.UserID)
 	require.NotEqual(t, account.Balance, account2.Balance)
 	require.WithinDuration(t, account.UpdatedAt, account2.UpdatedAt, time.Second)
-	tx.Rollback()
 }

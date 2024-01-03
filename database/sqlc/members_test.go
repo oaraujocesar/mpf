@@ -31,6 +31,7 @@ func createRandomMember(t *testing.T, family Family, user User, tx *sql.Tx) Memb
 
 func TestCreateFamilyMember(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
 	family := createRandomFamily(t, tx)
@@ -42,12 +43,11 @@ func TestCreateFamilyMember(t *testing.T) {
 	require.Equal(t, family.ID, member.FamilyID)
 	require.NotZero(t, member.CreatedAt)
 	require.NotZero(t, member.UpdatedAt)
-
-	tx.Rollback()
 }
 
 func TestDeleteMember(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	family := createRandomFamily(t, tx)
 	user := createRandomUser(t, tx)
@@ -60,12 +60,11 @@ func TestDeleteMember(t *testing.T) {
 	member, err = testStore.WithTx(tx).GetMemberById(context.Background(), member.ID)
 	require.Error(t, err)
 	require.Empty(t, member)
-
-	tx.Rollback()
 }
 
 func TestListAppMembers(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
 	family := createRandomFamily(t, tx)
@@ -90,12 +89,11 @@ func TestListAppMembers(t *testing.T) {
 		require.NotZero(t, member.CreatedAt)
 		require.NotZero(t, member.UpdatedAt)
 	}
-
-	tx.Rollback()
 }
 
 func TestListFamilyMembers(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	family := createRandomFamily(t, tx)
 
@@ -121,6 +119,4 @@ func TestListFamilyMembers(t *testing.T) {
 		require.NotZero(t, member.CreatedAt)
 		require.NotZero(t, member.UpdatedAt)
 	}
-
-	tx.Rollback()
 }

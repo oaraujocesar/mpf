@@ -43,17 +43,17 @@ func createRandomCard(t *testing.T, user User, family Family, tx *sql.Tx) Card {
 
 func TestCreateCard(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
 	family := createRandomFamily(t, tx)
 
 	createRandomCard(t, user, family, tx)
-
-	tx.Rollback()
 }
 
 func TestGetCard(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
 	family := createRandomFamily(t, tx)
@@ -70,12 +70,11 @@ func TestGetCard(t *testing.T) {
 	require.Equal(t, card1.FamilyID, card2.FamilyID)
 	require.Equal(t, card1.CardLimit, card2.CardLimit)
 	require.Equal(t, card1.DueDate, card2.DueDate)
-
-	tx.Rollback()
 }
 
 func TestListCards(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
 	family := createRandomFamily(t, tx)
@@ -100,12 +99,11 @@ func TestListCards(t *testing.T) {
 		require.NotZero(t, card.UpdatedAt)
 		require.NotZero(t, card.DueDate)
 	}
-
-	tx.Rollback()
 }
 
 func TestUpdateCard(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
 	family := createRandomFamily(t, tx)
@@ -127,12 +125,11 @@ func TestUpdateCard(t *testing.T) {
 	require.Equal(t, arg.Name, card2.Name)
 	require.Equal(t, arg.CardLimit, card2.CardLimit)
 	require.Equal(t, arg.DueDate, card2.DueDate)
-
-	tx.Rollback()
 }
 
 func TestSoftDeleteCard(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
 	family := createRandomFamily(t, tx)
@@ -146,6 +143,4 @@ func TestSoftDeleteCard(t *testing.T) {
 	require.Error(t, err)
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, card)
-
-	tx.Rollback()
 }

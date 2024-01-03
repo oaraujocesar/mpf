@@ -37,14 +37,14 @@ func createRandomUser(t *testing.T, tx *sql.Tx) User {
 
 func TestCreateUser(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	createRandomUser(t, tx)
-
-	tx.Rollback()
 }
 
 func TestGetUserByEmail(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	user1 := createRandomUser(t, tx)
 	user2, err := testStore.WithTx(tx).GetUserByEmail(context.Background(), user1.Email)
@@ -61,12 +61,11 @@ func TestGetUserByEmail(t *testing.T) {
 
 	require.WithinDuration(t, user1.CreatedAt, user2.CreatedAt, time.Second)
 	require.WithinDuration(t, user1.UpdatedAt, user2.UpdatedAt, time.Second)
-
-	tx.Rollback()
 }
 
 func TestGetUserByID(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	user1 := createRandomUser(t, tx)
 	user2, err := testStore.WithTx(tx).GetUserById(context.Background(), user1.ID)
@@ -77,12 +76,11 @@ func TestGetUserByID(t *testing.T) {
 	require.Equal(t, user1.ID, user2.ID)
 	require.Equal(t, user1.Name, user2.Name)
 	require.Equal(t, user1.Email, user2.Email)
-
-	tx.Rollback()
 }
 
 func TestUpdateUser(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	user1 := createRandomUser(t, tx)
 
@@ -107,12 +105,11 @@ func TestUpdateUser(t *testing.T) {
 
 	require.WithinDuration(t, user1.CreatedAt, user2.CreatedAt, time.Second)
 	require.WithinDuration(t, user1.UpdatedAt, user2.UpdatedAt, time.Second)
-
-	tx.Rollback()
 }
 
 func TestListUsers(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	for i := 0; i < 10; i++ {
 		createRandomUser(t, tx)
@@ -133,12 +130,11 @@ func TestListUsers(t *testing.T) {
 		require.NotZero(t, user.CreatedAt)
 		require.NotZero(t, user.UpdatedAt)
 	}
-
-	tx.Rollback()
 }
 
 func TestSoftDeleteUser(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
 
 	user1 := createRandomUser(t, tx)
 
@@ -150,6 +146,4 @@ func TestSoftDeleteUser(t *testing.T) {
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, user2)
 	require.NotNil(t, user2.DeletedAt)
-
-	tx.Rollback()
 }
