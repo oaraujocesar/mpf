@@ -17,6 +17,11 @@ func RandomInt(min, max int64) int64 {
 	return min + rand.Int63n(max-min+1)
 }
 
+// RandomFloat returns a random float between min and max.
+func RandomFloat(min, max float64) float64 {
+	return min + rand.Float64()*(max-min)
+}
+
 // RandomString returns a random string of length n.
 func RandomString(n int) string {
 
@@ -47,6 +52,6 @@ func RandomPassword(n int) string {
 }
 
 // Random Money returns a random amount of money.
-func RandomMoney() int64 {
-	return RandomInt(1, 1000)
+func RandomMoney() float64 {
+	return RandomFloat(1.00, 5000.00)
 }
