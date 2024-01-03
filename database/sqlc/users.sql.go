@@ -101,16 +101,6 @@ func (q *Queries) GetUserById(ctx context.Context, id int64) (User, error) {
 	return i, err
 }
 
-const hardDeleteUser = `-- name: HardDeleteUser :exec
-DELETE FROM users
-WHERE id = $1
-`
-
-func (q *Queries) HardDeleteUser(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, hardDeleteUser, id)
-	return err
-}
-
 const listUsers = `-- name: ListUsers :many
 SELECT id, name, email, password, avatar, created_at, updated_at, deleted_at
 FROM users

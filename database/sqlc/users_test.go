@@ -142,17 +142,3 @@ func TestSoftDeleteUser(t *testing.T) {
 	require.NotNil(t, user2.DeletedAt)
 	teardownTest(migrations)
 }
-
-func TestHardDeleteUser(t *testing.T) {
-	setupTest(migrations)
-	user1 := createRandomUser(t)
-
-	err := testQueries.HardDeleteUser(context.Background(), user1.ID)
-	require.NoError(t, err)
-
-	user2, err := testQueries.GetUserById(context.Background(), user1.ID)
-	require.Error(t, err)
-	require.EqualError(t, err, sql.ErrNoRows.Error())
-	require.Empty(t, user2)
-	teardownTest(migrations)
-}
