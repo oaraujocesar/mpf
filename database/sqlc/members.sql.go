@@ -66,21 +66,71 @@ func (q *Queries) GetMemberById(ctx context.Context, id int64) (Member, error) {
 	return i, err
 }
 
-const listMembers = `-- name: ListMembers :many
+const listAppMembers = `-- name: ListAppMembers :many
 SELECT id, family_id, user_id, created_at, updated_at, deleted_at
 FROM members
 ORDER BY $1
 LIMIT $2 OFFSET $3
 `
 
-type ListMembersParams struct {
+type ListAppMembersParams struct {
 	Column1 interface{} `json:"column_1"`
 	Limit   int32       `json:"limit"`
 	Offset  int32       `json:"offset"`
 }
 
-func (q *Queries) ListMembers(ctx context.Context, arg ListMembersParams) ([]Member, error) {
-	rows, err := q.db.QueryContext(ctx, listMembers, arg.Column1, arg.Limit, arg.Offset)
+func (q *Queries) ListAppMembers(ctx context.Context, arg ListAppMembersParams) ([]Member, error) {
+	rows, err := q.db.QueryContext(ctx, listAppMembers, arg.Column1, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Member{}
+	for rows.Next() {
+		var i Member
+		if err := rows.Scan(
+			&i.ID,
+			&i.FamilyID,
+			&i.UserID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listFamilyMembers = `-- name: ListFamilyMembers :many
+SELECT id, family_id, user_id, created_at, updated_at, deleted_at
+FROM members
+WHERE family_id = $1
+ORDER BY $2
+LIMIT $3 OFFSET $4
+`
+
+type ListFamilyMembersParams struct {
+	FamilyID int64       `json:"family_id"`
+	Column2  interface{} `json:"column_2"`
+	Limit    int32       `json:"limit"`
+	Offset   int32       `json:"offset"`
+}
+
+func (q *Queries) ListFamilyMembers(ctx context.Context, arg ListFamilyMembersParams) ([]Member, error) {
+	rows, err := q.db.QueryContext(ctx, listFamilyMembers,
+		arg.FamilyID,
+		arg.Column2,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}
