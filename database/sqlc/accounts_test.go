@@ -4,13 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"testing"
+	"time"
 
 	"github.com/oaraujocesar/mpf/util"
 	"github.com/stretchr/testify/require"
 )
 
-func createRandomAccount(t *testing.T) Account {
-	user := createRandomUser(t)
+func createRandomAccount(t *testing.T, tx *sql.Tx) Account {
+	user := createRandomUser(t, tx)
 
 	arg := CreateAccountParams{
 		Balance: float64(util.RandomMoney()),
@@ -18,7 +19,7 @@ func createRandomAccount(t *testing.T) Account {
 		UserID:  user.ID,
 	}
 
-	account, err := testQueries.CreateAccount(context.Background(), arg)
+	account, err := testStore.WithTx(tx).CreateAccount(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, account)
 	require.Equal(t, arg.Balance, account.Balance)
@@ -32,18 +33,19 @@ func createRandomAccount(t *testing.T) Account {
 }
 
 func TestCreateAccount(t *testing.T) {
-	setupTest(migrations)
-	account := createRandomAccount(t)
+	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	account := createRandomAccount(t, tx)
 
 	require.NotEmpty(t, account)
-	teardownTest(migrations)
+
+	tx.Rollback()
 }
 
 func TestGetAccountById(t *testing.T) {
-	setupTest(migrations)
-	account := createRandomAccount(t)
+	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	account := createRandomAccount(t, tx)
 
-	account2, err := testQueries.GetAccountById(context.Background(), account.ID)
+	account2, err := testStore.WithTx(tx).GetAccountById(context.Background(), account.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,28 +55,29 @@ func TestGetAccountById(t *testing.T) {
 	require.Equal(t, account.Balance, account2.Balance)
 	require.Equal(t, account.Name, account2.Name)
 	require.Equal(t, account.UserID, account2.UserID)
-	teardownTest(migrations)
+	tx.Rollback()
 }
 
 func TestSoftDeleteAccount(t *testing.T) {
-	setupTest(migrations)
-	account := createRandomAccount(t)
+	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	account := createRandomAccount(t, tx)
 
-	err := testQueries.DeleteAccount(context.Background(), account.ID)
+	err := testStore.WithTx(tx).DeleteAccount(context.Background(), account.ID)
 	require.NoError(t, err)
 
-	account2, err := testQueries.GetAccountById(context.Background(), account.ID)
+	account2, err := testStore.WithTx(tx).GetAccountById(context.Background(), account.ID)
 	require.Error(t, err)
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, account2)
 	require.NotNil(t, account2.DeletedAt)
-	teardownTest(migrations)
+	tx.Rollback()
 }
 
 func TestListAccounts(t *testing.T) {
-	setupTest(migrations)
+	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+
 	for i := 0; i < 10; i++ {
-		createRandomAccount(t)
+		createRandomAccount(t, tx)
 	}
 
 	arg := ListAccountsParams{
@@ -82,7 +85,7 @@ func TestListAccounts(t *testing.T) {
 		Offset: 0,
 	}
 
-	accounts, err := testQueries.ListAccounts(context.Background(), arg)
+	accounts, err := testStore.WithTx(tx).ListAccounts(context.Background(), arg)
 	require.NoError(t, err)
 	require.Len(t, accounts, 10)
 
@@ -92,12 +95,12 @@ func TestListAccounts(t *testing.T) {
 		require.NotZero(t, account.Balance)
 		require.NotEmpty(t, account.Name)
 	}
-	teardownTest(migrations)
+	tx.Rollback()
 }
 
 func TestUpdateAccount(t *testing.T) {
-	setupTest(migrations)
-	account := createRandomAccount(t)
+	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	account := createRandomAccount(t, tx)
 
 	arg := UpdateAccountParams{
 		Balance: float64(util.RandomMoney()),
@@ -105,7 +108,7 @@ func TestUpdateAccount(t *testing.T) {
 		ID:      account.ID,
 	}
 
-	account2, err := testQueries.UpdateAccount(context.Background(), arg)
+	account2, err := testStore.WithTx(tx).UpdateAccount(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, account2)
 	require.Equal(t, account.ID, account2.ID)
@@ -113,20 +116,20 @@ func TestUpdateAccount(t *testing.T) {
 	require.Equal(t, arg.Name, account2.Name)
 	require.Equal(t, account.UserID, account2.UserID)
 	require.NotEqual(t, account.Balance, account2.Balance)
-	require.NotEqual(t, account.UpdatedAt, account2.UpdatedAt)
-	teardownTest(migrations)
+	require.WithinDuration(t, account.UpdatedAt, account2.UpdatedAt, time.Second)
+	tx.Rollback()
 }
 
 func TestUpdateBalance(t *testing.T) {
-	setupTest(migrations)
-	account := createRandomAccount(t)
+	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	account := createRandomAccount(t, tx)
 
 	arg := UpdateBalanceParams{
 		Balance: account.Balance + float64(util.RandomMoney()),
 		ID:      account.ID,
 	}
 
-	account2, err := testQueries.UpdateBalance(context.Background(), arg)
+	account2, err := testStore.WithTx(tx).UpdateBalance(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, account2)
 	require.Equal(t, account.ID, account2.ID)
@@ -134,6 +137,6 @@ func TestUpdateBalance(t *testing.T) {
 	require.Equal(t, account.Name, account2.Name)
 	require.Equal(t, account.UserID, account2.UserID)
 	require.NotEqual(t, account.Balance, account2.Balance)
-	require.NotEqual(t, account.UpdatedAt, account2.UpdatedAt)
-	teardownTest(migrations)
+	require.WithinDuration(t, account.UpdatedAt, account2.UpdatedAt, time.Second)
+	tx.Rollback()
 }

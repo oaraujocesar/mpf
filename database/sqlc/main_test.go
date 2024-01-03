@@ -17,8 +17,7 @@ const (
 	dbSource = "postgres://postgres:postgres@database:5432/mpf_test?sslmode=disable"
 )
 
-var testQueries *Queries
-var migrations *migrate.Migrate
+var testStore *Store
 
 func TestMain(m *testing.M) {
 	conn, err := sql.Open(dbDriver, dbSource)
@@ -26,10 +25,14 @@ func TestMain(m *testing.M) {
 		log.Fatal("cannot connect to database: ", err)
 	}
 
-	testQueries = New(conn)
-	migrations = setupMigrations(conn)
+	testStore = NewStore(conn)
+	migrations := setupMigrations(conn)
 
-	os.Exit(m.Run())
+	migrations.Up()
+	code := m.Run()
+	migrations.Down()
+
+	os.Exit(code)
 }
 
 func setupMigrations(conn *sql.DB) *migrate.Migrate {
@@ -44,12 +47,4 @@ func setupMigrations(conn *sql.DB) *migrate.Migrate {
 	}
 
 	return migrate
-}
-
-func setupTest(migrate *migrate.Migrate) {
-	migrate.Up()
-}
-
-func teardownTest(migrate *migrate.Migrate) {
-	migrate.Down()
 }

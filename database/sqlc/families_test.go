@@ -10,15 +10,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createRandomFamily(t *testing.T) Family {
-	user := createRandomUser(t)
+func createRandomFamily(t *testing.T, tx *sql.Tx) Family {
+	user := createRandomUser(t, tx)
 
 	arg := CreateFamilyParams{
 		Name:   util.RandomName(),
 		UserID: user.ID,
 	}
 
-	family, err := testQueries.CreateFamily(context.Background(), arg)
+	family, err := testStore.WithTx(tx).CreateFamily(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, family)
 	require.Equal(t, arg.Name, family.Name)
@@ -29,47 +29,54 @@ func createRandomFamily(t *testing.T) Family {
 }
 
 func TestCreateFamily(t *testing.T) {
-	setupTest(migrations)
-	createRandomFamily(t)
-	teardownTest(migrations)
+	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+
+	createRandomFamily(t, tx)
+
+	tx.Rollback()
 }
 
 func TestGetFamilyById(t *testing.T) {
-	setupTest(migrations)
-	family := createRandomFamily(t)
+	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 
-	family2, err := testQueries.GetFamilyById(context.Background(), family.ID)
+	family := createRandomFamily(t, tx)
+
+	family2, err := testStore.WithTx(tx).GetFamilyById(context.Background(), family.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, family2)
 	require.Equal(t, family.ID, family2.ID)
 	require.Equal(t, family.Name, family2.Name)
 	require.Equal(t, family.UserID, family2.UserID)
-	teardownTest(migrations)
+
+	tx.Rollback()
 }
 
 func TestUpdateFamily(t *testing.T) {
-	setupTest(migrations)
-	family := createRandomFamily(t)
+	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+
+	family := createRandomFamily(t, tx)
 
 	arg := UpdateFamilyParams{
 		ID:   family.ID,
 		Name: util.RandomName(),
 	}
 
-	family2, err := testQueries.UpdateFamily(context.Background(), arg)
+	family2, err := testStore.WithTx(tx).UpdateFamily(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, family2)
 	require.Equal(t, arg.ID, family2.ID)
 	require.Equal(t, arg.Name, family2.Name)
 	require.Equal(t, family.CreatedAt, family2.CreatedAt, time.Second)
 	require.WithinDuration(t, family.UpdatedAt, family2.UpdatedAt, time.Second)
-	teardownTest(migrations)
+
+	tx.Rollback()
 }
 
 func TestListFamilies(t *testing.T) {
-	setupTest(migrations)
+	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+
 	for i := 0; i < 10; i++ {
-		createRandomFamily(t)
+		createRandomFamily(t, tx)
 	}
 
 	arg := ListFamiliesParams{
@@ -77,7 +84,7 @@ func TestListFamilies(t *testing.T) {
 		Offset: 0,
 	}
 
-	families, err := testQueries.ListFamilies(context.Background(), arg)
+	families, err := testStore.WithTx(tx).ListFamilies(context.Background(), arg)
 	require.NoError(t, err)
 	require.Len(t, families, 10)
 
@@ -89,19 +96,21 @@ func TestListFamilies(t *testing.T) {
 		require.NotZero(t, family.UpdatedAt)
 	}
 
-	teardownTest(migrations)
+	tx.Rollback()
 }
 
 func TestDeleteFamily(t *testing.T) {
-	setupTest(migrations)
-	family := createRandomFamily(t)
+	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 
-	err := testQueries.DeleteFamily(context.Background(), family.ID)
+	family := createRandomFamily(t, tx)
+
+	err := testStore.WithTx(tx).DeleteFamily(context.Background(), family.ID)
 	require.NoError(t, err)
 
-	family2, err := testQueries.GetFamilyById(context.Background(), family.ID)
+	family2, err := testStore.WithTx(tx).GetFamilyById(context.Background(), family.ID)
 	require.Error(t, err)
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, family2)
-	teardownTest(migrations)
+
+	tx.Rollback()
 }

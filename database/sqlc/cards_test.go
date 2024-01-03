@@ -9,16 +9,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createRandomCard(t *testing.T, user User, family Family) Card {
+func createRandomCard(t *testing.T, user User, family Family, tx *sql.Tx) Card {
 	arg := CreateCardParams{
-		Name:      "Test Card",
+		Name:      util.RandomName(),
 		CardLimit: util.RandomMoney(),
 		DueDate:   int32(util.RandomInt(1, 28)),
 		FamilyID:  sql.NullInt64{Int64: family.ID, Valid: true},
 		UserID:    user.ID,
 	}
 
-	card, err := testQueries.CreateCard(context.Background(), arg)
+	card, err := testStore.WithTx(tx).CreateCard(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, card)
 
@@ -32,40 +32,34 @@ func createRandomCard(t *testing.T, user User, family Family) Card {
 	require.NotZero(t, card.UpdatedAt)
 	require.Zero(t, card.DeletedAt)
 
-	return card
-}
-
-func TestCreateCard(t *testing.T) {
-	setupTest(migrations)
-
-	user := createRandomUser(t)
-	family := createRandomFamily(t)
-
-	card := createRandomCard(t, user, family)
-
-	require.NotEmpty(t, card)
-	require.NotZero(t, card.ID)
-	require.NotZero(t, card.CreatedAt)
-	require.NotZero(t, card.UpdatedAt)
-	require.Zero(t, card.DeletedAt)
-
-	require.Equal(t, "Test Card", card.Name)
+	require.Equal(t, arg.Name, card.Name)
 	require.Equal(t, user.ID, card.UserID)
 	require.Equal(t, family.ID, card.FamilyID.Int64)
 	require.InDelta(t, 1.00, card.CardLimit, 5000.00)
 	require.InDelta(t, 1, card.DueDate, 28)
 
-	teardownTest(migrations)
+	return card
+}
+
+func TestCreateCard(t *testing.T) {
+	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+
+	user := createRandomUser(t, tx)
+	family := createRandomFamily(t, tx)
+
+	createRandomCard(t, user, family, tx)
+
+	tx.Rollback()
 }
 
 func TestGetCard(t *testing.T) {
-	setupTest(migrations)
+	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 
-	user := createRandomUser(t)
-	family := createRandomFamily(t)
+	user := createRandomUser(t, tx)
+	family := createRandomFamily(t, tx)
 
-	card1 := createRandomCard(t, user, family)
-	card2, err := testQueries.GetCardById(context.Background(), card1.ID)
+	card1 := createRandomCard(t, user, family, tx)
+	card2, err := testStore.WithTx(tx).GetCardById(context.Background(), card1.ID)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, card2)
@@ -77,17 +71,17 @@ func TestGetCard(t *testing.T) {
 	require.Equal(t, card1.CardLimit, card2.CardLimit)
 	require.Equal(t, card1.DueDate, card2.DueDate)
 
-	teardownTest(migrations)
+	tx.Rollback()
 }
 
 func TestListCards(t *testing.T) {
-	setupTest(migrations)
+	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 
-	user := createRandomUser(t)
-	family := createRandomFamily(t)
+	user := createRandomUser(t, tx)
+	family := createRandomFamily(t, tx)
 
 	for i := 0; i < 10; i++ {
-		createRandomCard(t, user, family)
+		createRandomCard(t, user, family, tx)
 	}
 
 	arg := ListCardsParams{
@@ -95,24 +89,28 @@ func TestListCards(t *testing.T) {
 		Offset: 5,
 	}
 
-	cards, err := testQueries.ListCards(context.Background(), arg)
+	cards, err := testStore.WithTx(tx).ListCards(context.Background(), arg)
 	require.NoError(t, err)
 	require.Len(t, cards, 5)
 
 	for _, card := range cards {
 		require.NotEmpty(t, card)
+		require.NotZero(t, card.ID)
+		require.NotZero(t, card.CreatedAt)
+		require.NotZero(t, card.UpdatedAt)
+		require.NotZero(t, card.DueDate)
 	}
 
-	teardownTest(migrations)
+	tx.Rollback()
 }
 
 func TestUpdateCard(t *testing.T) {
-	setupTest(migrations)
+	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 
-	user := createRandomUser(t)
-	family := createRandomFamily(t)
+	user := createRandomUser(t, tx)
+	family := createRandomFamily(t, tx)
 
-	card1 := createRandomCard(t, user, family)
+	card1 := createRandomCard(t, user, family, tx)
 
 	arg := UpdateCardParams{
 		ID:        card1.ID,
@@ -121,7 +119,7 @@ func TestUpdateCard(t *testing.T) {
 		DueDate:   int32(util.RandomInt(1, 28)),
 	}
 
-	card2, err := testQueries.UpdateCard(context.Background(), arg)
+	card2, err := testStore.WithTx(tx).UpdateCard(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, card2)
 
@@ -130,24 +128,24 @@ func TestUpdateCard(t *testing.T) {
 	require.Equal(t, arg.CardLimit, card2.CardLimit)
 	require.Equal(t, arg.DueDate, card2.DueDate)
 
-	teardownTest(migrations)
+	tx.Rollback()
 }
 
 func TestSoftDeleteCard(t *testing.T) {
-	setupTest(migrations)
+	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 
-	user := createRandomUser(t)
-	family := createRandomFamily(t)
+	user := createRandomUser(t, tx)
+	family := createRandomFamily(t, tx)
 
-	card := createRandomCard(t, user, family)
+	card := createRandomCard(t, user, family, tx)
 
-	err := testQueries.DeleteCard(context.Background(), card.ID)
+	err := testStore.WithTx(tx).DeleteCard(context.Background(), card.ID)
 	require.NoError(t, err)
 
-	card, err = testQueries.GetCardById(context.Background(), card.ID)
+	card, err = testStore.WithTx(tx).GetCardById(context.Background(), card.ID)
 	require.Error(t, err)
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, card)
 
-	teardownTest(migrations)
+	tx.Rollback()
 }
