@@ -122,4 +122,55 @@ func TestUpdateInvoiceAmount(t *testing.T) {
 	require.WithinDuration(t, invoice.UpdatedAt, invoice2.UpdatedAt, time.Second)
 }
 
-// TODO: continue invoice tests
+func TestDeleteInvoice(t *testing.T) {
+	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
+
+	user := createRandomUser(t, tx)
+	family := createRandomFamily(t, tx)
+	account := createRandomAccount(t, tx)
+	card := createRandomCard(t, user, family, tx)
+
+	invoice := createRandomInvoice(t, tx, card, account)
+
+	err := testStore.WithTx(tx).DeleteInvoice(context.Background(), invoice.ID)
+	require.NoError(t, err)
+
+	invoice2, err := testStore.WithTx(tx).GetInvoiceById(context.Background(), invoice.ID)
+	require.Error(t, err)
+	require.EqualError(t, err, sql.ErrNoRows.Error())
+	require.Empty(t, invoice2)
+}
+
+func TestUpdateInvoice(t *testing.T) {
+	tx, _ := testStore.db.BeginTx(context.Background(), nil)
+	defer tx.Rollback()
+
+	user := createRandomUser(t, tx)
+	family := createRandomFamily(t, tx)
+	account := createRandomAccount(t, tx)
+	card := createRandomCard(t, user, family, tx)
+
+	invoice := createRandomInvoice(t, tx, card, account)
+
+	arg := UpdateInvoiceParams{
+		ID:        invoice.ID,
+		DueAt:     time.Date(2023, 1, 8, 0, 0, 0, 0, time.UTC),
+		CloseAt:   time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC),
+		AccountID: account.ID,
+		PaidAt:    sql.NullTime{Time: time.Now(), Valid: true},
+	}
+
+	invoice2, err := testStore.WithTx(tx).UpdateInvoice(context.Background(), arg)
+	require.NoError(t, err)
+	require.NotEmpty(t, invoice2)
+
+	require.Equal(t, invoice.ID, invoice2.ID)
+	require.Equal(t, invoice.CardID, invoice2.CardID)
+	require.Equal(t, invoice.Amount, invoice2.Amount)
+	require.Equal(t, arg.AccountID, invoice2.AccountID)
+	require.WithinDuration(t, arg.CloseAt, invoice2.CloseAt, time.Second)
+	require.WithinDuration(t, arg.DueAt, invoice2.DueAt, time.Second)
+	require.WithinDuration(t, arg.PaidAt.Time, invoice2.PaidAt.Time, time.Second)
+	require.WithinDuration(t, invoice.UpdatedAt, invoice2.UpdatedAt, time.Second)
+}
