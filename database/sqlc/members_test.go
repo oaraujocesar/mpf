@@ -34,7 +34,8 @@ func TestCreateFamilyMember(t *testing.T) {
 	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
-	family := createRandomFamily(t, tx)
+	user2 := createRandomUser(t, tx)
+	family := createRandomFamily(t, tx, user2)
 
 	member, err := testStore.WithTx(tx).CreateMember(context.Background(), CreateMemberParams{FamilyID: family.ID, UserID: user.ID})
 	require.NoError(t, err)
@@ -49,10 +50,10 @@ func TestDeleteMember(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 	defer tx.Rollback()
 
-	family := createRandomFamily(t, tx)
 	user := createRandomUser(t, tx)
+	family := createRandomFamily(t, tx, user)
 
-	member := createRandomMember(t, family, user, tx)
+	member := createRandomMember(t, family, createRandomUser(t, tx), tx)
 
 	err := testStore.WithTx(tx).DeleteMember(context.Background(), member.ID)
 	require.NoError(t, err)
@@ -67,10 +68,10 @@ func TestListAppMembers(t *testing.T) {
 	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
-	family := createRandomFamily(t, tx)
+	family := createRandomFamily(t, tx, user)
 
 	for i := 0; i < 10; i++ {
-		createRandomMember(t, family, user, tx)
+		createRandomMember(t, family, createRandomUser(t, tx), tx)
 	}
 
 	arg := ListAppMembersParams{
@@ -84,7 +85,7 @@ func TestListAppMembers(t *testing.T) {
 
 	for _, member := range members {
 		require.NotEmpty(t, member)
-		require.Equal(t, user.ID, member.UserID)
+		require.NotZero(t, member.UserID)
 		require.Equal(t, family.ID, member.FamilyID)
 		require.NotZero(t, member.CreatedAt)
 		require.NotZero(t, member.UpdatedAt)
@@ -95,11 +96,11 @@ func TestListFamilyMembers(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 	defer tx.Rollback()
 
-	family := createRandomFamily(t, tx)
+	user := createRandomUser(t, tx)
+	family := createRandomFamily(t, tx, user)
 
 	for i := 0; i < 10; i++ {
-		user := createRandomUser(t, tx)
-		createRandomMember(t, family, user, tx)
+		createRandomMember(t, family, createRandomUser(t, tx), tx)
 	}
 
 	arg := ListFamilyMembersParams{

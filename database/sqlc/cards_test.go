@@ -46,7 +46,7 @@ func TestCreateCard(t *testing.T) {
 	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
-	family := createRandomFamily(t, tx)
+	family := createRandomFamily(t, tx, user)
 
 	createRandomCard(t, user, family, tx)
 }
@@ -56,7 +56,7 @@ func TestGetCard(t *testing.T) {
 	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
-	family := createRandomFamily(t, tx)
+	family := createRandomFamily(t, tx, user)
 
 	card1 := createRandomCard(t, user, family, tx)
 	card2, err := testStore.WithTx(tx).GetCardById(context.Background(), card1.ID)
@@ -77,7 +77,7 @@ func TestListCards(t *testing.T) {
 	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
-	family := createRandomFamily(t, tx)
+	family := createRandomFamily(t, tx, user)
 
 	for i := 0; i < 10; i++ {
 		createRandomCard(t, user, family, tx)
@@ -106,7 +106,7 @@ func TestUpdateCard(t *testing.T) {
 	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
-	family := createRandomFamily(t, tx)
+	family := createRandomFamily(t, tx, user)
 
 	card1 := createRandomCard(t, user, family, tx)
 
@@ -132,7 +132,7 @@ func TestSoftDeleteCard(t *testing.T) {
 	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
-	family := createRandomFamily(t, tx)
+	family := createRandomFamily(t, tx, user)
 
 	card := createRandomCard(t, user, family, tx)
 

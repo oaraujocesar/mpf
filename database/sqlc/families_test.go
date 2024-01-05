@@ -10,9 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createRandomFamily(t *testing.T, tx *sql.Tx) Family {
-	user := createRandomUser(t, tx)
-
+func createRandomFamily(t *testing.T, tx *sql.Tx, user User) Family {
 	arg := CreateFamilyParams{
 		Name:   util.RandomName(),
 		UserID: user.ID,
@@ -32,14 +30,17 @@ func TestCreateFamily(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 	defer tx.Rollback()
 
-	createRandomFamily(t, tx)
+	user := createRandomUser(t, tx)
+
+	createRandomFamily(t, tx, user)
 }
 
 func TestGetFamilyById(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 	defer tx.Rollback()
 
-	family := createRandomFamily(t, tx)
+	user := createRandomUser(t, tx)
+	family := createRandomFamily(t, tx, user)
 
 	family2, err := testStore.WithTx(tx).GetFamilyById(context.Background(), family.ID)
 	require.NoError(t, err)
@@ -53,7 +54,8 @@ func TestUpdateFamily(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 	defer tx.Rollback()
 
-	family := createRandomFamily(t, tx)
+	user := createRandomUser(t, tx)
+	family := createRandomFamily(t, tx, user)
 
 	arg := UpdateFamilyParams{
 		ID:   family.ID,
@@ -73,8 +75,10 @@ func TestListFamilies(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 	defer tx.Rollback()
 
+	user := createRandomUser(t, tx)
+
 	for i := 0; i < 10; i++ {
-		createRandomFamily(t, tx)
+		createRandomFamily(t, tx, user)
 	}
 
 	arg := ListFamiliesParams{
@@ -99,7 +103,8 @@ func TestDeleteFamily(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 	defer tx.Rollback()
 
-	family := createRandomFamily(t, tx)
+	user := createRandomUser(t, tx)
+	family := createRandomFamily(t, tx, user)
 
 	err := testStore.WithTx(tx).DeleteFamily(context.Background(), family.ID)
 	require.NoError(t, err)

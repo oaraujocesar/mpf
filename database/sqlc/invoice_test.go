@@ -36,8 +36,8 @@ func TestCreateInvoice(t *testing.T) {
 	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
-	family := createRandomFamily(t, tx)
-	account := createRandomAccount(t, tx)
+	family := createRandomFamily(t, tx, user)
+	account := createRandomAccount(t, tx, user)
 	card := createRandomCard(t, user, family, tx)
 
 	createRandomInvoice(t, tx, card, account)
@@ -48,8 +48,8 @@ func TestGetInvoiceById(t *testing.T) {
 	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
-	family := createRandomFamily(t, tx)
-	account := createRandomAccount(t, tx)
+	family := createRandomFamily(t, tx, user)
+	account := createRandomAccount(t, tx, user)
 	card := createRandomCard(t, user, family, tx)
 
 	invoice := createRandomInvoice(t, tx, card, account)
@@ -71,8 +71,8 @@ func TestListInvoices(t *testing.T) {
 	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
-	family := createRandomFamily(t, tx)
-	account := createRandomAccount(t, tx)
+	family := createRandomFamily(t, tx, user)
+	account := createRandomAccount(t, tx, user)
 	card := createRandomCard(t, user, family, tx)
 
 	for i := 0; i < 10; i++ {
@@ -98,8 +98,8 @@ func TestUpdateInvoiceAmount(t *testing.T) {
 	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
-	family := createRandomFamily(t, tx)
-	account := createRandomAccount(t, tx)
+	family := createRandomFamily(t, tx, user)
+	account := createRandomAccount(t, tx, user)
 	card := createRandomCard(t, user, family, tx)
 
 	invoice := createRandomInvoice(t, tx, card, account)
@@ -127,8 +127,8 @@ func TestDeleteInvoice(t *testing.T) {
 	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
-	family := createRandomFamily(t, tx)
-	account := createRandomAccount(t, tx)
+	family := createRandomFamily(t, tx, user)
+	account := createRandomAccount(t, tx, user)
 	card := createRandomCard(t, user, family, tx)
 
 	invoice := createRandomInvoice(t, tx, card, account)
@@ -147,8 +147,8 @@ func TestUpdateInvoice(t *testing.T) {
 	defer tx.Rollback()
 
 	user := createRandomUser(t, tx)
-	family := createRandomFamily(t, tx)
-	account := createRandomAccount(t, tx)
+	family := createRandomFamily(t, tx, user)
+	account := createRandomAccount(t, tx, user)
 	card := createRandomCard(t, user, family, tx)
 
 	invoice := createRandomInvoice(t, tx, card, account)

@@ -10,9 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createRandomAccount(t *testing.T, tx *sql.Tx) Account {
-	user := createRandomUser(t, tx)
-
+func createRandomAccount(t *testing.T, tx *sql.Tx, user User) Account {
 	arg := CreateAccountParams{
 		Balance: float64(util.RandomMoney()),
 		Name:    util.RandomName(),
@@ -36,7 +34,8 @@ func TestCreateAccount(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 	defer tx.Rollback()
 
-	account := createRandomAccount(t, tx)
+	user := createRandomUser(t, tx)
+	account := createRandomAccount(t, tx, user)
 
 	require.NotEmpty(t, account)
 }
@@ -45,7 +44,8 @@ func TestGetAccountById(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 	defer tx.Rollback()
 
-	account := createRandomAccount(t, tx)
+	user := createRandomUser(t, tx)
+	account := createRandomAccount(t, tx, user)
 
 	account2, err := testStore.WithTx(tx).GetAccountById(context.Background(), account.ID)
 	if err != nil {
@@ -63,7 +63,8 @@ func TestSoftDeleteAccount(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 	defer tx.Rollback()
 
-	account := createRandomAccount(t, tx)
+	user := createRandomUser(t, tx)
+	account := createRandomAccount(t, tx, user)
 
 	err := testStore.WithTx(tx).DeleteAccount(context.Background(), account.ID)
 	require.NoError(t, err)
@@ -79,8 +80,10 @@ func TestListAccounts(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 	defer tx.Rollback()
 
+	user := createRandomUser(t, tx)
+
 	for i := 0; i < 10; i++ {
-		createRandomAccount(t, tx)
+		createRandomAccount(t, tx, user)
 	}
 
 	arg := ListAccountsParams{
@@ -104,7 +107,8 @@ func TestUpdateAccount(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 	defer tx.Rollback()
 
-	account := createRandomAccount(t, tx)
+	user := createRandomUser(t, tx)
+	account := createRandomAccount(t, tx, user)
 
 	arg := UpdateAccountParams{
 		Balance: float64(util.RandomMoney()),
@@ -127,7 +131,8 @@ func TestUpdateBalance(t *testing.T) {
 	tx, _ := testStore.db.BeginTx(context.Background(), nil)
 	defer tx.Rollback()
 
-	account := createRandomAccount(t, tx)
+	user := createRandomUser(t, tx)
+	account := createRandomAccount(t, tx, user)
 
 	arg := UpdateBalanceParams{
 		Balance: account.Balance + float64(util.RandomMoney()),
