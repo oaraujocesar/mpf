@@ -1,7 +1,6 @@
-version: "3.8"
 services:
   database:
-    image: postgres
+    image: postgres:latest
     healthcheck:
       test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres"]
       timeout: 45s
@@ -21,9 +20,7 @@ services:
     networks:
       - app-network
   server:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     depends_on:
       - database
     volumes:
@@ -32,6 +29,7 @@ services:
       - "${WEB_SERVER_PORT}:${WEB_SERVER_PORT}"
     networks:
       - app-network
+
 volumes:
   db:
 
