@@ -1,10 +1,10 @@
-FROM golang:1.21
+FROM golang:1.23.1-alpine3.20
 
 WORKDIR /app
 
-RUN go install github.com/cosmtrek/air@latest
+RUN go install github.com/air-verse/air@latest
 
-RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 
 COPY . .

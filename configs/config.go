@@ -8,12 +8,13 @@ import (
 var cfg *conf
 
 type conf struct {
-	DBDrive       string `mapstructure:"DB_DRIVER"`
-	DBHost        string `mapstructure:"DB_HOST"`
-	DBPort        string `mapstructure:"DB_PORT"`
-	DBUser        string `mapstructure:"DB_USER"`
-	DBPassword    string `mapstructure:"DB_PASSWORD"`
-	DBName        string `mapstructure:"DB_NAME"`
+	// DBDrive       string `mapstructure:"DB_DRIVER"`
+	// DBHost        string `mapstructure:"DB_HOST"`
+	// DBPort        string `mapstructure:"DB_PORT"`
+	// DBUser        string `mapstructure:"DB_USER"`
+	// DBPassword    string `mapstructure:"DB_PASSWORD"`
+	// DBName        string `mapstructure:"DB_NAME"`
+	DBUrl         string `mapstructure:"DB_URL"`
 	WebServerPort string `mapstructure:"WEB_SERVER_PORT"`
 	JwtSecret     string `mapstructure:"JWT_SECRET"`
 	JwtExpiresIn  int    `mapstructure:"JWT_EXPIRES_IN"`
