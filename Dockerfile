@@ -9,6 +9,8 @@ RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 
 COPY . .
 
+RUN ln .env cmd/server/.env
+
 RUN go mod tidy
 
 EXPOSE 3333

@@ -2,7 +2,7 @@ services:
   database:
     image: postgres:latest
     env_file:
-      - cmd/server/.env
+      - .env
     healthcheck:
       test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres"]
       timeout: 45s
@@ -24,7 +24,7 @@ services:
   server:
     build: .
     env_file:
-      - cmd/server/.env
+      - .env
     depends_on:
       - database
     volumes:
