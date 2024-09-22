@@ -51,6 +51,10 @@ func New() Service {
 	dbInstance = &service{
 		db: db,
 	}
+
+	//run migrations
+	Up(db)
+
 	return dbInstance
 }
 
@@ -67,7 +71,7 @@ func (s *service) Health() map[string]string {
 	if err != nil {
 		stats["status"] = "down"
 		stats["error"] = fmt.Sprintf("db down: %v", err)
-		log.Fatalf(fmt.Sprintf("db down: %v", err)) // Log the error and terminate the program
+		log.Fatalf(fmt.Sprintf("db down: %v", err))
 		return stats
 	}
 

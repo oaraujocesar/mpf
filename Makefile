@@ -5,8 +5,7 @@ all: build test
 
 build:
 	@echo "Building..."
-	
-	
+
 	@go build -o main cmd/api/main.go
 
 # Run the application
@@ -61,4 +60,10 @@ watch:
             fi; \
         fi
 
-.PHONY: all build run test clean watch docker-run docker-down itest
+migration-create:
+	goose create -dir="internal/database/migrations" $(name) sql
+
+generate:
+	sqlc generate
+
+.PHONY: all build run test clean watch docker-run docker-down itest migration-create
