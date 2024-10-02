@@ -9,6 +9,13 @@ import (
 )
 
 type User struct {
-	ID   int32
-	Name pgtype.Text
+	ID                int32
+	Serial            pgtype.Text
+	Name              string
+	Surname           string
+	Email             string
+	Password          string
+	TermsAndPrivacyAt pgtype.Timestamptz
+	CreatedAt         pgtype.Timestamptz
+	UpdatedAt         pgtype.Timestamptz
 }
