@@ -90,6 +90,13 @@ func TestHealth(t *testing.T) {
 		t.Fatalf("expected message to be 'It's healthy', got %s", stats["message"])
 	}
 }
+func TestMigration(t *testing.T) {
+	srv := New()
+
+	if err := srv.RunMigrations(); err != nil {
+		t.Fatalf("expected RunMigrations() to return nil, got %v", err)
+	}
+}
 
 func TestClose(t *testing.T) {
 	srv := New()

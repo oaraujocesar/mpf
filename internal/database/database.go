@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"embed"
 	"fmt"
 	"log"
 	"os"
@@ -11,6 +12,7 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/pressly/goose/v3"
 )
 
 // Service represents a service that interacts with a database.
@@ -22,6 +24,10 @@ type Service interface {
 	// Close terminates the database connection.
 	// It returns an error if the connection cannot be closed.
 	Close() error
+
+	// RunMigrations runs the database migrations.
+	// It returns an error if the migrations cannot be ran.
+	RunMigrations() error
 }
 
 type service struct {
@@ -34,16 +40,18 @@ var (
 	username   = os.Getenv("DB_USERNAME")
 	port       = os.Getenv("DB_PORT")
 	host       = os.Getenv("DB_HOST")
-	schema     = os.Getenv("DB_SCHEMA")
 	dbInstance *service
 )
+
+//go:embed migrations/*.sql
+var embedMigrations embed.FS
 
 func New() Service {
 	// Reuse Connection
 	if dbInstance != nil {
 		return dbInstance
 	}
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=%s", username, password, host, port, database, schema)
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?&sslmode=disable", username, password, host, port, database)
 	db, err := sql.Open("pgx", connStr)
 	if err != nil {
 		log.Fatal(err)
@@ -52,10 +60,22 @@ func New() Service {
 		db: db,
 	}
 
-	//run migrations
-	Up(db)
-
 	return dbInstance
+}
+
+// RunMigrations runs the database migrations.
+func (s *service) RunMigrations() error {
+	goose.SetBaseFS(embedMigrations)
+
+	if err := goose.SetDialect("postgres"); err != nil {
+		return err
+	}
+
+	if err := goose.Up(s.db, "migrations"); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Health checks the health of the database connection by pinging the database.

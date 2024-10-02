@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -33,6 +34,11 @@ func NewServer() *http.Server {
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
+	}
+
+	err := NewServer.db.RunMigrations()
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	return server
