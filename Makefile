@@ -61,9 +61,41 @@ watch:
         fi
 
 migration-create:
-	goose create -dir="internal/database/migrations" $(name) sql
+	@echo "Creating migration..."
+
+	@if command -v goose > /dev/null; then \
+			goose create -dir="internal/database/migrations" $(name) sql; \
+		else \
+			read -p "Go's 'goose' is not installed on your machine. Do you want to install it? [Y/n] " choice; \
+			if [ "$$choice" != "n" ] && [ "$$choice" != "N" ]; then \
+				go install github.com/pressly/goose/v3/cmd/goose@latest; \
+				if command asdf > /dev/null; then \
+					asdf reshim golang; \
+				fi; \
+				goose create -dir="internal/database/migrations" $(name) sql; \
+			else \
+				echo "You chose not to install goose. Exiting..."; \
+				exit 1; \
+			fi; \
+		fi;
 
 generate:
-	sqlc generate
+	@echo "Generating sqlc files..."
+
+	@if command -v sqlc > /dev/null; then \
+		sqlc generate; \
+	else \
+		read -p "Go's 'sqlc' is not installed on your machine. Do you want to install it? [Y/n] " choice; \
+		if [ "$$choice" != "n" ] && [ "$$choice" != "N" ]; then \
+			go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest; \
+			if command asdf > /dev/null; then \
+					asdf reshim golang; \
+			fi; \
+			sqlc generate; \
+		else \
+			echo "You chose not to install sqlc. Exiting..."; \
+			exit 1; \
+		fi; \
+	fi;
 
 .PHONY: all build run test clean watch docker-run docker-down itest migration-create
