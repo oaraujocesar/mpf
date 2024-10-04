@@ -8,6 +8,7 @@ services:
     ports:
       - "${DB_PORT}:5432"
     volumes:
+      - ./internal/database/scripts/create-db.sql:/docker-entrypoint-initdb.d/create_database.sql
       - psql_volume:/var/lib/postgresql/data
 
 volumes:

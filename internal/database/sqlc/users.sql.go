@@ -10,7 +10,7 @@ import (
 )
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, name FROM users
+SELECT id, serial, name, surname, email, password, terms_and_privacy_at, created_at, updated_at FROM users
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
@@ -22,7 +22,17 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 	var items []User
 	for rows.Next() {
 		var i User
-		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Serial,
+			&i.Name,
+			&i.Surname,
+			&i.Email,
+			&i.Password,
+			&i.TermsAndPrivacyAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

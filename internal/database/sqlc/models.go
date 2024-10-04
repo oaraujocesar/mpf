@@ -4,7 +4,18 @@
 
 package database
 
+import (
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
 type User struct {
-	ID   int32
-	Name string
+	ID                int32
+	Serial            string
+	Name              string
+	Surname           string
+	Email             string
+	Password          string
+	TermsAndPrivacyAt pgtype.Timestamptz
+	CreatedAt         pgtype.Timestamptz
+	UpdatedAt         pgtype.Timestamptz
 }
