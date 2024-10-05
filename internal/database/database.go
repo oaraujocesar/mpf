@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"time"
 
+	"mpf/internal/database/sqlc"
+
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/pressly/goose/v3"
@@ -30,8 +32,14 @@ type Service interface {
 	RunMigrations() error
 }
 
+type ServiceQueries interface {
+	Service
+	sqlc.Querier
+}
+
 type service struct {
-	db *sql.DB
+	db      *sql.DB
+	queries *sqlc.Queries
 }
 
 var (
@@ -46,7 +54,7 @@ var (
 //go:embed migrations/*.sql
 var embedMigrations embed.FS
 
-func New() Service {
+func New() ServiceQueries {
 	// Reuse Connection
 	if dbInstance != nil {
 		return dbInstance
@@ -57,7 +65,8 @@ func New() Service {
 		log.Fatal(err)
 	}
 	dbInstance = &service{
-		db: db,
+		db:      db,
+		queries: sqlc.New(db),
 	}
 
 	return dbInstance

@@ -5,6 +5,11 @@ sql:
     schema: "internal/database/migrations"
     gen:
       go:
-        package: "database"
+        package: "sqlc"
         out: "internal/database/sqlc"
-        sql_package: "pgx/v5"
+        sql_package: "database/sql"
+        emit_json_tags: true
+        emit_prepared_queries: false
+        emit_interface: true
+        emit_exact_table_names: false
+        emit_empty_slices: true

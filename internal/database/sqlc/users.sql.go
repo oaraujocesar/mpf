@@ -3,23 +3,58 @@
 //   sqlc v1.27.0
 // source: users.sql
 
-package database
+package sqlc
 
 import (
 	"context"
 )
+
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (name, surname, email, password)
+VALUES ($1, $2, $3, $4)
+RETURNING id, serial, name, surname, email, password, terms_and_privacy_at, created_at, updated_at
+`
+
+type CreateUserParams struct {
+	Name     string `json:"name"`
+	Surname  string `json:"surname"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, createUser,
+		arg.Name,
+		arg.Surname,
+		arg.Email,
+		arg.Password,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Serial,
+		&i.Name,
+		&i.Surname,
+		&i.Email,
+		&i.Password,
+		&i.TermsAndPrivacyAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
 
 const getUsers = `-- name: GetUsers :many
 SELECT id, serial, name, surname, email, password, terms_and_privacy_at, created_at, updated_at FROM users
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
-	rows, err := q.db.Query(ctx, getUsers)
+	rows, err := q.db.QueryContext(ctx, getUsers)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []User
+	items := []User{}
 	for rows.Next() {
 		var i User
 		if err := rows.Scan(
@@ -36,6 +71,9 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

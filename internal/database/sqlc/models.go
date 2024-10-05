@@ -2,20 +2,21 @@
 // versions:
 //   sqlc v1.27.0
 
-package database
+package sqlc
 
 import (
-	"github.com/jackc/pgx/v5/pgtype"
+	"database/sql"
+	"time"
 )
 
 type User struct {
-	ID                int32
-	Serial            string
-	Name              string
-	Surname           string
-	Email             string
-	Password          string
-	TermsAndPrivacyAt pgtype.Timestamptz
-	CreatedAt         pgtype.Timestamptz
-	UpdatedAt         pgtype.Timestamptz
+	ID                int32        `json:"id"`
+	Serial            string       `json:"serial"`
+	Name              string       `json:"name"`
+	Surname           string       `json:"surname"`
+	Email             string       `json:"email"`
+	Password          string       `json:"password"`
+	TermsAndPrivacyAt sql.NullTime `json:"terms_and_privacy_at"`
+	CreatedAt         time.Time    `json:"created_at"`
+	UpdatedAt         time.Time    `json:"updated_at"`
 }
